@@ -1,4 +1,7 @@
-<h1 align="center">💧 Hydro Tracker — Ulanzi Deck Plugin</h1>
+<p align="center">
+<img  alt="Banner Hydro Tracker" src="/com.hydro.tracker.ulanziPlugin/assets/marketing/brand-blue.png" width="10%">
+</p> 
+<h1 align="center">Hydro Tracker — Ulanzi Deck Plugin</h1>
 
 <p align="center">
   <b>A personal hydration coach on a single key.</b><br>
@@ -11,6 +14,7 @@
   <img alt="license" src="https://img.shields.io/badge/license-MIT-00B4D8">
   <img alt="i18n" src="https://img.shields.io/badge/i18n-11%20locales-48CAE4">
 </p>
+<img alt="Banner Hydro Tracker" src="/com.hydro.tracker.ulanziPlugin/assets/marketing/Banner_Hydro Tracker.jpeg">
 
 ---
 
