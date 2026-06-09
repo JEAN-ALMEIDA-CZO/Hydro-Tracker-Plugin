@@ -129,8 +129,8 @@ com.hydro.tracker.ulanziPlugin/
 
 ## 📄 License
 
-Released under the **MIT License** — see [LICENSE](LICENSE).
-Bundled libraries and fonts are credited in [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
+Released under the **MIT License** — see [LICENSE](com.hydro.tracker.ulanziPlugin/LICENSE).
+Bundled libraries and fonts are credited in [THIRD-PARTY-LICENSES.md](com.hydro.tracker.ulanziPlugin/THIRD-PARTY-LICENSES.md).
 
 ---
 
