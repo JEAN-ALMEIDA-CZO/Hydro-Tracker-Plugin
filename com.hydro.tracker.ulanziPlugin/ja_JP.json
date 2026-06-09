@@ -1,0 +1,48 @@
+{
+  "Name": "水分補給タイマー",
+  "Description": "水分補給のニーズを計算し、水を飲むためのスマートなリマインダーを提供します。",
+  "Actions": [
+    {
+      "Name": "水分補給タイマー",
+      "Tooltip": "スマートリマインダー"
+    }
+  ],
+  "Localization": {
+    "profile": "プロフィール",
+    "ageGroup": "年齢層",
+    "adult": "大人",
+    "child": "子供",
+    "weight": "体重",
+    "containerSize": "容器サイズ",
+    "behavior": "動作",
+    "theme": "テーマ",
+    "font": "フォント",
+    "notifications": "通知",
+    "notifyEnable": "デスクトップ通知",
+    "resetProgress": "リセット",
+    "tipClickKey": "キー押下：水を飲んだ",
+    "msgDrinkWater": "水を飲む時間です！水分補給をしましょう。",
+    "msgGoalReached": "1日の水分補給目標を達成しました！よくやりました！",
+    "calcInfo": "目標: {0}ml ({1} 杯)。間隔: {2}分。",
+    "labelIdle": "水分補給",
+    "labelRunning": "飲む",
+    "labelAlert": "飲んで！",
+    "labelDone": "完了",
+    "hotWeather": "暑さ",
+    "hotWeatherHint": "暑さ / 水分+15%",
+    "quietHours": "静音",
+    "quietHoursHint": "夜間は通知しない",
+    "quietFrom": "開始",
+    "quietTo": "まで",
+    "animation": "アニメーション",
+    "drinkAnim": "飲む",
+    "animRipples": "波紋",
+    "animDrop": "しずく",
+    "animWave": "満タン",
+    "ringAnimLabel": "リング",
+    "ringClean": "クリーン",
+    "ringFlow": "輝き",
+    "ringTide": "潮",
+    "tutorial": "チュートリアル"
+  }
+}

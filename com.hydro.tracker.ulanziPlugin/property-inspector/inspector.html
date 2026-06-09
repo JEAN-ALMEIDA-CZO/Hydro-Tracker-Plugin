@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no">
+  <title>Hydro Tracker</title>
+  <link rel="stylesheet" href="../libs/css/udpi.css">
+  <style>
+    @font-face { font-family: 'hydro-sans';    src: url('../assets/fonts/sans.ttf'); }
+    @font-face { font-family: 'hydro-mono';    src: url('../assets/fonts/mono.ttf'); }
+    @font-face { font-family: 'hydro-serif';   src: url('../assets/fonts/serif.ttf'); }
+    @font-face { font-family: 'hydro-display'; src: url('../assets/fonts/display.ttf'); }
+  </style>
+  <style>
+    :root {
+      --accent: #00B4D8;
+      --accent-soft: rgba(0,180,216,.12);
+      --line: rgba(255,255,255,.07);
+      --label: #8b95a3;
+      --field-bg: #11161d;
+      --field-border: #2a323d;
+    }
+
+    body { padding-bottom: 18px; }
+
+    .section {
+      margin: 0;
+      padding: 14px 0 6px;
+      border-top: 1px solid var(--line);
+    }
+    .section:first-of-type { border-top: none; padding-top: 6px; }
+    .section-title {
+      font-size: 8pt;
+      font-weight: 700;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: var(--label);
+      padding: 0 18px 8px;
+    }
+
+    input[type="number"]:focus,
+    select:focus { border-color: var(--accent) !important; outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+    input[type="range"] { accent-color: var(--accent); }
+    select { accent-color: var(--accent); }
+
+    .row {
+      display: flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 3px 18px;
+    }
+    .row .label {
+      flex: 0 0 104px;
+      text-align: left;
+      padding-right: 12px;
+      font-size: 9pt;
+      color: #cdd4dd;
+    }
+    .row .control {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input[type="number"], select {
+      background: var(--field-bg);
+      color: var(--udpi-color);
+      border: 1px solid var(--field-border);
+      border-radius: 7px;
+      min-height: 30px;
+      min-width: 0 !important;
+      box-sizing: border-box;
+      padding: 0 8px !important;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input[type="number"] { width: 62px; flex: 0 0 62px; text-align: center; }
+    select { width: 100%; flex: 1; background-position: 96% center; }
+    .unit { color: #6c7785; font-size: 8.5pt; }
+
+    /* toggle switch */
+    .switch { position: relative; width: 42px; height: 24px; flex: 0 0 42px; }
+    .switch input { display: none; }
+    .switch .track {
+      position: absolute; inset: 0; border-radius: 24px;
+      background: #2a323d; transition: background .2s; cursor: pointer;
+    }
+    .switch .track::after {
+      content: ""; position: absolute; top: 2px; left: 2px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #e8edf2; transition: transform .2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+    .switch input:checked + .track { background: var(--accent); }
+    .switch input:checked + .track::after { transform: translateX(18px); }
+    .switch-hint { color: #7c8794; font-size: 8.5pt; margin-left: 12px; }
+
+    /* theme swatches */
+    .themes { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 18px 8px; }
+    .theme-swatch {
+      width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+      border: 2px solid transparent; position: relative; box-sizing: border-box;
+      display: flex; overflow: hidden; transition: transform .12s, border-color .15s;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+    .theme-swatch:hover { transform: translateY(-1px); }
+    .theme-swatch.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .theme-swatch i { flex: 1; display: block; }
+    .theme-swatch i:first-child { flex: 1.4; }
+
+    .calc-result {
+      margin: 8px 18px 6px;
+      padding: 10px 14px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(0,180,216,.22);
+      border-radius: 9px;
+      font-size: 8.5pt;
+      line-height: 1.5;
+      color: #8fd2e6;
+      text-align: center;
+    }
+
+    .reset-row { padding: 14px 18px 4px; }
+    .reset-btn {
+      width: 100%; min-height: 36px; border-radius: 9px; cursor: pointer;
+      background: transparent; border: 1px solid var(--field-border); color: #b7c0cb;
+      font-weight: 600; font-size: 9.5pt; transition: all .15s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .reset-btn:hover  { border-color: #4a5562; color: #e8edf2; background: rgba(255,255,255,.03); }
+    .reset-btn:active { background: rgba(0,180,216,.14); border-color: var(--accent); color: var(--accent); }
+
+    .tip { padding: 10px 18px 0; color: #5b6470; font-size: 8.5pt; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="udpi-wrapper hidden">
+    <form id="property-inspector">
+
+      <!-- PROFILE -->
+      <div class="section">
+        <div class="section-title" data-localize>profile</div>
+
+        <div class="row">
+          <div class="label" data-localize>ageGroup</div>
+          <div class="control">
+            <select id="ageGroup" name="ageGroup">
+              <option value="adult" data-localize>adult</option>
+              <option value="child" data-localize>child</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label" data-localize>weight</div>
+          <div class="control">
+            <input type="number" id="weight" name="weight" min="10" max="300" step="1" value="70">
+            <select id="weightUnit" name="weightUnit" style="width:70px; flex:0 0 70px;">
+              <option value="kg">kg</option>
+              <option value="lbs">lbs</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label" data-localize>containerSize</div>
+          <div class="control">
+            <input type="number" id="containerSize" name="containerSize" min="0.1" max="5000" step="any" value="250">
+            <select id="containerUnit" name="containerUnit" style="width:70px; flex:0 0 70px;">
+              <option value="ml">ml</option>
+              <option value="l">L</option>
+              <option value="oz">oz</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALCULATED RESULT -->
+      <div class="calc-result" id="calc-display"></div>
+
+      <!-- BEHAVIOR -->
+      <div class="section">
+        <div class="section-title" data-localize>behavior</div>
+
+        <div class="row">
+          <div class="label" data-localize>notifications</div>
+          <div class="control">
+            <label class="switch">
+              <input type="checkbox" name="notify" id="notify" value="true" checked>
+              <span class="track"></span>
+            </label>
+            <span class="switch-hint" data-localize>notifyEnable</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label" data-localize>hotWeather</div>
+          <div class="control">
+            <label class="switch">
+              <input type="checkbox" name="hotWeather" id="hotWeather" value="true">
+              <span class="track"></span>
+            </label>
+            <span class="switch-hint" data-localize>hotWeatherHint</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label" data-localize>quietHours</div>
+          <div class="control">
+            <label class="switch">
+              <input type="checkbox" name="quietEnabled" id="quietEnabled" value="true">
+              <span class="track"></span>
+            </label>
+            <span class="switch-hint" data-localize>quietHoursHint</span>
+          </div>
+        </div>
+
+        <div class="row" id="quiet-window-row" style="display:none">
+          <div class="label" data-localize>quietFrom</div>
+          <div class="control">
+            <select name="quietStart" id="quietStart" style="width:74px; flex:0 0 74px;"></select>
+            <span class="unit" data-localize>quietTo</span>
+            <select name="quietEnd" id="quietEnd" style="width:74px; flex:0 0 74px;"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div class="section">
+        <div class="section-title" data-localize>theme</div>
+
+        <input type="hidden" name="theme" id="theme" value="ocean">
+        <div class="themes" id="theme-swatches"></div>
+
+        <div class="row">
+          <div class="label" data-localize>font</div>
+          <div class="control">
+            <select name="font" id="font">
+              <option value="sans">Sans</option>
+              <option value="mono">Mono</option>
+              <option value="serif">Serif</option>
+              <option value="display">Display</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANIMATION -->
+      <div class="section">
+        <div class="section-title" data-localize>animation</div>
+
+        <div class="row">
+          <div class="label" data-localize>drinkAnim</div>
+          <div class="control">
+            <select name="dropAnim" id="dropAnim">
+              <option value="ripples" data-localize>animRipples</option>
+              <option value="drop" data-localize>animDrop</option>
+              <option value="wave" data-localize>animWave</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label" data-localize>ringAnimLabel</div>
+          <div class="control">
+            <select name="ringAnim" id="ringAnim">
+              <option value="clean" data-localize>ringClean</option>
+              <option value="flow" data-localize>ringFlow</option>
+              <option value="tide" data-localize>ringTide</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <div class="reset-row">
+      <button class="reset-btn" id="btn-reset" type="button" data-localize>resetProgress</button>
+    </div>
+
+    <div class="reset-row">
+      <button class="reset-btn" id="btn-tutorial" type="button" data-localize>tutorial</button>
+    </div>
+
+    <p class="tip" data-localize>tipClickKey</p>
+  </div>
+
+  <script src="../libs/js/constants.js"></script>
+  <script src="../libs/js/eventEmitter.js"></script>
+  <script src="../libs/js/timers.js"></script>
+  <script src="../libs/js/utils.js"></script>
+  <script src="../libs/js/ulanzideckApi.js"></script>
+  <script src="./inspector.js"></script>
+</body>
+</html>

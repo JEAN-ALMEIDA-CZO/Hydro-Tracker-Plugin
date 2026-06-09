@@ -1,0 +1,48 @@
+{
+  "Name": "Minuteur d'Eau",
+  "Description": "Calcule vos besoins en hydratation et propose des rappels intelligents pour boire de l'eau.",
+  "Actions": [
+    {
+      "Name": "Minuteur d'Eau",
+      "Tooltip": "Rappel Intelligent"
+    }
+  ],
+  "Localization": {
+    "profile": "PROFIL",
+    "ageGroup": "Tranche d'âge",
+    "adult": "Adulte",
+    "child": "Enfant",
+    "weight": "Poids",
+    "containerSize": "Récipient",
+    "behavior": "COMPORTEMENT",
+    "theme": "THÈME",
+    "font": "Police",
+    "notifications": "Notifier",
+    "notifyEnable": "Alerte bureau",
+    "resetProgress": "Réinitialiser",
+    "tipClickKey": "Clic sur touche : a bu de l'eau",
+    "msgDrinkWater": "C'est l'heure de boire de l'eau !",
+    "msgGoalReached": "Objectif d'hydratation quotidien atteint ! Bien joué !",
+    "calcInfo": "Objectif : {0}ml ({1} verres). Intervalle : {2}m.",
+    "labelIdle": "HYDRATER",
+    "labelRunning": "BOIRE",
+    "labelAlert": "BOIS !",
+    "labelDone": "FINI",
+    "hotWeather": "Été",
+    "hotWeatherHint": "Chaud / +15% d'eau",
+    "quietHours": "Silence",
+    "quietHoursHint": "Pas d’alertes la nuit",
+    "quietFrom": "De",
+    "quietTo": "à",
+    "animation": "ANIMATION",
+    "drinkAnim": "Boire",
+    "animRipples": "Ondes",
+    "animDrop": "Goutte",
+    "animWave": "Remplissage",
+    "ringAnimLabel": "Anneau",
+    "ringClean": "Net",
+    "ringFlow": "Lueur",
+    "ringTide": "Marée",
+    "tutorial": "Tutoriel"
+  }
+}

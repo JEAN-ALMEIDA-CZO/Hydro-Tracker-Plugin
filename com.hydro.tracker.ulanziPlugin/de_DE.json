@@ -1,0 +1,48 @@
+{
+  "Name": "Wassertimer",
+  "Description": "Berechnet deinen Flüssigkeitsbedarf und bietet intelligente Erinnerungen zum Wassertrinken.",
+  "Actions": [
+    {
+      "Name": "Wassertimer",
+      "Tooltip": "Intelligente Erinnerung"
+    }
+  ],
+  "Localization": {
+    "profile": "PROFIL",
+    "ageGroup": "Altersgruppe",
+    "adult": "Erwachsener",
+    "child": "Kind",
+    "weight": "Gewicht",
+    "containerSize": "Behälter",
+    "behavior": "VERHALTEN",
+    "theme": "THEMA",
+    "font": "Schriftart",
+    "notifications": "Benachrichtigen",
+    "notifyEnable": "Desktop-Benachrichtigung",
+    "resetProgress": "Zurücksetzen",
+    "tipClickKey": "Tastendruck: Wasser getrunken",
+    "msgDrinkWater": "Zeit, Wasser zu trinken! Bleib hydratisiert.",
+    "msgGoalReached": "Tägliches Trinkziel erreicht! Gut gemacht!",
+    "calcInfo": "Ziel: {0}ml ({1} Gläser). Intervall: {2}m.",
+    "labelIdle": "TRINKEN",
+    "labelRunning": "TRINK",
+    "labelAlert": "TRINK!",
+    "labelDone": "FERTIG",
+    "hotWeather": "Sommer",
+    "hotWeatherHint": "Hitze / +15% Wasser",
+    "quietHours": "Ruhe",
+    "quietHoursHint": "Nachts keine Hinweise",
+    "quietFrom": "Von",
+    "quietTo": "bis",
+    "animation": "ANIMATION",
+    "drinkAnim": "Trinken",
+    "animRipples": "Wellen",
+    "animDrop": "Tropfen",
+    "animWave": "Füllen",
+    "ringAnimLabel": "Ring",
+    "ringClean": "Klar",
+    "ringFlow": "Leuchten",
+    "ringTide": "Gezeiten",
+    "tutorial": "Anleitung"
+  }
+}

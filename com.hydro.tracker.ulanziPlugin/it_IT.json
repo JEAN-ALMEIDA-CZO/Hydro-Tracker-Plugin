@@ -1,0 +1,48 @@
+{
+  "Name": "Timer Acqua",
+  "Description": "Calcola il tuo fabbisogno di idratazione e offre promemoria intelligenti per bere acqua.",
+  "Actions": [
+    {
+      "Name": "Timer Acqua",
+      "Tooltip": "Promemoria Intelligente"
+    }
+  ],
+  "Localization": {
+    "profile": "PROFILO",
+    "ageGroup": "Fascia d'età",
+    "adult": "Adulto",
+    "child": "Bambino",
+    "weight": "Peso",
+    "containerSize": "Recipiente",
+    "behavior": "COMPORTAMENTO",
+    "theme": "TEMA",
+    "font": "Carattere",
+    "notifications": "Notifica",
+    "notifyEnable": "Avviso desktop",
+    "resetProgress": "Ripristina",
+    "tipClickKey": "Clic sul tasto: acqua bevuta",
+    "msgDrinkWater": "È l'ora di bere acqua! Mantieniti idratato.",
+    "msgGoalReached": "Obiettivo di idratazione giornaliero raggiunto! Ottimo lavoro!",
+    "calcInfo": "Obiettivo: {0}ml ({1} bicchieri). Intervallo: {2}m.",
+    "labelIdle": "IDRATARSI",
+    "labelRunning": "BERE",
+    "labelAlert": "BEVI!",
+    "labelDone": "FATTO",
+    "hotWeather": "Estate",
+    "hotWeatherHint": "Caldo / +15% acqua",
+    "quietHours": "Silenzio",
+    "quietHoursHint": "Niente avvisi di notte",
+    "quietFrom": "Dalle",
+    "quietTo": "alle",
+    "animation": "ANIMAZIONE",
+    "drinkAnim": "Bere",
+    "animRipples": "Onde",
+    "animDrop": "Goccia",
+    "animWave": "Riempimento",
+    "ringAnimLabel": "Anello",
+    "ringClean": "Pulito",
+    "ringFlow": "Bagliore",
+    "ringTide": "Marea",
+    "tutorial": "Tutorial"
+  }
+}

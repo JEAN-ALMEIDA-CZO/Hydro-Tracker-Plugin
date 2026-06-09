@@ -1,0 +1,48 @@
+{
+  "Name": "Hydro Tracker",
+  "Description": "Calculates your hydration needs and gives you smart countdown reminders to drink water.",
+  "Actions": [
+    {
+      "Name": "Hydro Tracker",
+      "Tooltip": "Smart Water Countdown"
+    }
+  ],
+  "Localization": {
+    "profile": "PROFILE",
+    "ageGroup": "Age Group",
+    "adult": "Adult",
+    "child": "Child",
+    "weight": "Weight",
+    "containerSize": "Container",
+    "behavior": "BEHAVIOR",
+    "theme": "THEME",
+    "font": "Font",
+    "notifications": "Notify",
+    "notifyEnable": "Desktop alert on time",
+    "resetProgress": "Reset Progress",
+    "tipClickKey": "Click key: drank water",
+    "msgDrinkWater": "Time to drink water! Stay hydrated.",
+    "msgGoalReached": "Daily hydration goal reached! Great job!",
+    "calcInfo": "Goal: {0}ml ({1} glasses). Interval: {2}m.",
+    "labelIdle": "HYDRATE",
+    "labelRunning": "DRINK",
+    "labelAlert": "DRINK!",
+    "labelDone": "DONE",
+    "hotWeather": "Summer",
+    "hotWeatherHint": "Hot / +15% water",
+    "quietHours": "Quiet",
+    "quietHoursHint": "No alerts at night",
+    "quietFrom": "From",
+    "quietTo": "to",
+    "animation": "ANIMATION",
+    "drinkAnim": "Drink",
+    "animRipples": "Ripples",
+    "animDrop": "Drop",
+    "animWave": "Fill",
+    "ringAnimLabel": "Ring",
+    "ringClean": "Clean",
+    "ringFlow": "Glow",
+    "ringTide": "Tide",
+    "tutorial": "Tutorial"
+  }
+}

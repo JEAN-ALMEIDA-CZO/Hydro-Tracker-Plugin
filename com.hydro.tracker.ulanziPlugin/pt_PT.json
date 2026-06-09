@@ -1,0 +1,48 @@
+{
+  "Name": "Cronómetro de Água",
+  "Description": "Calcula suas necessidades de hidratação e oferece lembretes inteligentes em contagem regressiva para beber água.",
+  "Actions": [
+    {
+      "Name": "Cronómetro de Água",
+      "Tooltip": "Cronômetro Inteligente"
+    }
+  ],
+  "Localization": {
+    "profile": "PERFIL",
+    "ageGroup": "Faixa Etária",
+    "adult": "Adulto",
+    "child": "Criança",
+    "weight": "Peso",
+    "containerSize": "Recipiente",
+    "behavior": "COMPORTAMENTO",
+    "theme": "TEMA",
+    "font": "Fonte",
+    "notifications": "Notificar",
+    "notifyEnable": "Alerta na área de trabalho",
+    "resetProgress": "Zerar Progresso",
+    "tipClickKey": "Clique na tecla: bebeu água",
+    "msgDrinkWater": "Hora de beber água! Mantenha-se hidratado.",
+    "msgGoalReached": "Meta diária de hidratação alcançada! Parabéns!",
+    "calcInfo": "Meta: {0}ml ({1} copos). Intervalo: {2}m.",
+    "labelIdle": "HIDRATAR",
+    "labelRunning": "BEBER",
+    "labelAlert": "BEBA!",
+    "labelDone": "PRONTO",
+    "hotWeather": "Verão",
+    "hotWeatherHint": "Calor / +15% de água",
+    "quietHours": "Silêncio",
+    "quietHoursHint": "Sem avisos à noite",
+    "quietFrom": "Das",
+    "quietTo": "até",
+    "animation": "ANIMAÇÃO",
+    "drinkAnim": "Beber",
+    "animRipples": "Ondas",
+    "animDrop": "Gota a cair",
+    "animWave": "A encher",
+    "ringAnimLabel": "Anel",
+    "ringClean": "Limpo",
+    "ringFlow": "Brilho",
+    "ringTide": "Maré",
+    "tutorial": "Tutorial"
+  }
+}

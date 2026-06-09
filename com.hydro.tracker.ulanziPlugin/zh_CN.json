@@ -1,0 +1,48 @@
+{
+  "Name": "喝水倒计时",
+  "Description": "计算您的补水需求，并提供智能倒计时提醒您喝水。",
+  "Actions": [
+    {
+      "Name": "喝水倒计时",
+      "Tooltip": "智能喝水倒计时"
+    }
+  ],
+  "Localization": {
+    "profile": "个人资料",
+    "ageGroup": "年龄组",
+    "adult": "成人",
+    "child": "儿童",
+    "weight": "体重",
+    "containerSize": "容器容量",
+    "behavior": "行为",
+    "theme": "主题",
+    "font": "字体",
+    "notifications": "通知",
+    "notifyEnable": "到时桌面提醒",
+    "resetProgress": "重置进度",
+    "tipClickKey": "按键：已喝水",
+    "msgDrinkWater": "该喝水了！保持水分充足。",
+    "msgGoalReached": "达到每日补水目标！太棒了！",
+    "calcInfo": "目标：{0}ml（{1} 杯）。间隔：{2}分钟。",
+    "labelIdle": "补水",
+    "labelRunning": "喝水",
+    "labelAlert": "快喝水！",
+    "labelDone": "已完成",
+    "hotWeather": "炎热",
+    "hotWeatherHint": "炎热 / +15% 水",
+    "quietHours": "静音",
+    "quietHoursHint": "夜间不提醒",
+    "quietFrom": "从",
+    "quietTo": "至",
+    "animation": "动画",
+    "drinkAnim": "喝水",
+    "animRipples": "涟漪",
+    "animDrop": "水滴",
+    "animWave": "充满",
+    "ringAnimLabel": "圆环",
+    "ringClean": "简洁",
+    "ringFlow": "光晕",
+    "ringTide": "潮汐",
+    "tutorial": "教程"
+  }
+}

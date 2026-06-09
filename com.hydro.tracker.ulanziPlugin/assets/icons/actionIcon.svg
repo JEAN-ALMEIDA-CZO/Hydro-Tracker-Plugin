@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="water" gradientUnits="userSpaceOnUse" x1="40" y1="20" x2="216" y2="232">
+      <stop offset="0"   stop-color="#7fe3ff"/>
+      <stop offset="0.5" stop-color="#00B4D8"/>
+      <stop offset="1"   stop-color="#0077a8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Water Drop Outline -->
+  <path d="M 128,26
+           C 170,80 208,116 208,156 
+           A 80,80 0 1,1 48,156 
+           C 48,116 86,80 128,26 Z" 
+        fill="none" stroke="url(#water)" stroke-width="20" stroke-linejoin="round"/>
+
+  <!-- Clock Hands inside the Water Drop -->
+  <line x1="128" y1="164" x2="128" y2="104" stroke="url(#water)" stroke-width="17" stroke-linecap="round"/>
+  <line x1="128" y1="164" x2="174" y2="164" stroke="url(#water)" stroke-width="17" stroke-linecap="round"/>
+  
+  <!-- Clock Hub -->
+  <circle cx="128" cy="164" r="13" fill="url(#water)"/>
+</svg>

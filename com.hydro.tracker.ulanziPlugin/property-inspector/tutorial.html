@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hydro Tracker</title>
+<link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
+<style>
+  :root{
+    --water:#00B4D8; --water2:#48CAE4; --red:#E74C3C; --green:#2ECC71;
+    --bg:#070d14; --bg2:#0b131c; --card:#0e1822; --line:#1b2937;
+    --tx:#eaf2f8; --mut:#7c8b9b; --r:14px;
+    --mono:'SFMono-Regular',ui-monospace,'Cascadia Code',Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(900px 500px at 50% -10%,rgba(0,180,216,.12),transparent 60%),radial-gradient(800px 500px at 110% 110%,rgba(72,202,228,.08),transparent 55%);
+    background-attachment:fixed;}
+  .wrap{max-width:860px;margin:0 auto;padding:30px 20px 60px;}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:26px;font-family:var(--mono);font-size:12px;color:var(--mut);border-bottom:1px solid var(--line);padding-bottom:14px;}
+  .live{display:inline-flex;align-items:center;gap:7px;color:var(--water);font-weight:700;letter-spacing:.14em;}
+  .live i{width:8px;height:8px;border-radius:50%;background:var(--water);box-shadow:0 0 10px var(--water);animation:beat 1.6s ease-in-out infinite;}
+  .topbar .path{margin-left:auto;opacity:.65;}
+  .hero{display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center;opacity:0;transform:translateY(12px);animation:rise .6s ease forwards;}
+  @media(max-width:640px){.hero{grid-template-columns:1fr;}}
+  h1{font-size:clamp(30px,6vw,44px);line-height:1.05;margin:0;font-weight:800;letter-spacing:-.025em;}
+  h1 .g{background:linear-gradient(90deg,var(--water),var(--water2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--mut);margin:8px 0 0;font-size:15px;}
+  .keymock{width:150px;height:150px;flex:0 0 150px;border-radius:26px;box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 0 1px var(--line);}
+  .keymock svg{width:100%;height:100%;display:block;border-radius:26px;}
+  .lead{font-size:16.5px;color:#c4d2dd;margin:22px 0 6px;max-width:70ch;opacity:0;animation:rise .6s .08s ease forwards;}
+  .sec{margin:34px 0;}
+  .kicker{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--water);font-weight:700;margin-bottom:12px;}
+  .kicker::before{content:"// ";opacity:.55;}
+  h2{font-size:21px;margin:0 0 14px;font-weight:800;letter-spacing:-.01em;}
+  .card{position:relative;background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;overflow:hidden;}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--water),transparent 70%);}
+  ol.steps{counter-reset:s;list-style:none;margin:0;padding:2px 0 0 6px;}
+  ol.steps li{position:relative;padding:6px 0 18px 42px;}
+  ol.steps li:not(:last-child)::after{content:"";position:absolute;left:14px;top:30px;bottom:0;width:2px;background:var(--line);}
+  ol.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:2px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#04222b;background:radial-gradient(circle at 35% 30%,var(--water2),var(--water));box-shadow:0 0 0 4px rgba(0,180,216,.12);}
+  ul.list{list-style:none;margin:0;padding:0;}
+  ul.list li{position:relative;padding:8px 0 8px 22px;color:#cfdae3;font-size:14.5px;}
+  ul.list li::before{content:"\203A";position:absolute;left:3px;top:6px;color:var(--water);font-weight:800;}
+  ul.list li b{color:#eaf2f8;}
+  .formula{font-family:var(--mono);font-size:13px;color:var(--water2);background:#08131c;border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin:2px 0 14px;overflow-x:auto;}
+  .colors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  @media(max-width:560px){.colors{grid-template-columns:1fr;}}
+  .crow{display:flex;align-items:flex-start;gap:13px;padding:13px 14px;border-radius:12px;background:#0a121b;border:1px solid var(--line);}
+  .sw{width:26px;height:26px;flex:0 0 26px;border-radius:8px;margin-top:1px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);}
+  .sw.alert{animation:blink 1s steps(1) infinite;}
+  .cname{font-weight:700;font-size:14px;}
+  .cdesc{color:var(--mut);font-size:12.5px;margin-top:2px;}
+  .note{color:var(--mut);font-size:12.5px;margin-top:12px;font-family:var(--mono);}
+  .refs{color:#5b6a78;font-size:11.5px;margin-top:14px;line-height:1.5;border-top:1px dashed var(--line);padding-top:12px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+  .grid2 .sec{margin:0;}
+  .credits{margin-top:44px;display:flex;align-items:center;gap:18px;background:linear-gradient(180deg,#0c151e,#0a0f16);border:1px solid var(--line);border-radius:18px;padding:22px;}
+  @media(max-width:520px){.credits{flex-direction:column;text-align:center;}}
+  .avatar{width:78px;height:78px;border-radius:18px;flex:0 0 78px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:26px;color:#04222b;background:linear-gradient(135deg,var(--water),#0077a3);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.45);}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .cby{color:var(--mut);font-size:12px;font-family:var(--mono);letter-spacing:.05em;}
+  .cname2{font-size:20px;font-weight:800;margin:2px 0 12px;}
+  .social{display:flex;gap:10px;flex-wrap:wrap;}
+  .social a{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--tx);background:#10171f;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;transition:all .15s;}
+  .social a:hover{border-color:var(--water);color:var(--water);transform:translateY(-2px);}
+  .social svg{width:17px;height:17px;fill:currentColor;}
+  .foot{color:#4f5d6b;font-size:11px;text-align:center;margin-top:24px;font-family:var(--mono);}
+  @keyframes rise{to{opacity:1;transform:none;}}
+  @keyframes beat{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(.55);opacity:.5;}}
+  @keyframes blink{0%,49%{background:var(--red);}50%,100%{background:#3a1f1c;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="live"><i></i>HYDRATE</span>
+    <span>hydro-tracker · ulanzi deck</span>
+    <span class="path">v1.0.0</span>
+  </div>
+
+  <div class="hero">
+    <div>
+      <h1 id="title"><span class="g">Hydro</span> Tracker</h1>
+      <div class="sub" id="sub">Smart water reminders for your Ulanzi Deck</div>
+    </div>
+    <div class="keymock" aria-hidden="true">
+      <svg viewBox="0 0 256 256">
+        <rect width="256" height="256" rx="36" fill="#08131c"/>
+        <circle cx="128" cy="116" r="96" fill="none" stroke="#123047" stroke-width="13"/>
+        <circle cx="128" cy="116" r="96" fill="none" stroke="#00B4D8" stroke-width="13" stroke-linecap="round" stroke-dasharray="603" stroke-dashoffset="150" transform="rotate(-90 128 116)"/>
+        <text x="128" y="116" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="46" font-weight="bold" font-family="Arial">0:56</text>
+        <text x="128" y="176" text-anchor="middle" fill="#00B4D8" font-size="18" font-weight="bold" font-family="Arial" letter-spacing="4">DRINK</text>
+        <g fill="#00B4D8"><circle cx="98" cy="234" r="4.5"/><circle cx="116" cy="234" r="4.5"/><circle cx="134" cy="234" r="4.5"/><circle cx="152" cy="234" r="4.5" fill="#22303d"/></g>
+      </svg>
+    </div>
+  </div>
+
+  <p class="lead" id="p_what"></p>
+
+  <div class="sec">
+    <span class="kicker" id="k_how">Setup</span>
+    <h2 id="h_how">How it works</h2>
+    <div class="card"><ol class="steps" id="l_how"></ol></div>
+  </div>
+
+  <div class="sec">
+    <span class="kicker" id="k_cfg">Best practice</span>
+    <h2 id="h_cfg">Set it up correctly</h2>
+    <div class="card"><ul class="list" id="l_cfg"></ul></div>
+  </div>
+
+  <div class="sec">
+    <span class="kicker" id="k_sci">The science</span>
+    <h2 id="h_sci">Scientific basis</h2>
+    <div class="card">
+      <p id="sci_intro" style="margin:0 0 12px;color:#c4d2dd;font-size:14.5px;"></p>
+      <div class="formula" id="sci_formula">goal = ⌈ weight(kg) × ml/kg × heat ÷ container(ml) ⌉ · interval = 16 h ÷ goal</div>
+      <ul class="list" id="l_sci"></ul>
+      <div class="refs" id="sci_src"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <span class="kicker" id="k_phases">Reference</span>
+    <h2 id="h_phases">The four states</h2>
+    <div class="card">
+      <div class="colors" id="l_phases"></div>
+      <div class="note" id="phases_note"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="sec">
+      <span class="kicker" id="k_use">On the key</span>
+      <h2 id="h_use">Reading the key</h2>
+      <div class="card"><ul class="list" id="l_use"></ul></div>
+    </div>
+    <div class="sec">
+      <span class="kicker" id="k_tips">Get the most</span>
+      <h2 id="h_tips">Tips</h2>
+      <div class="card"><ul class="list" id="l_tips"></ul></div>
+    </div>
+  </div>
+
+  <div class="credits">
+    <div class="avatar"><img src="../assets/author.jpg" alt="Jean Almeida" onerror="this.remove(); this.parentNode.textContent='JA';"></div>
+    <div>
+      <div class="cby" id="c_by">Developed by</div>
+      <div class="cname2">Jean Almeida</div>
+      <div class="social">
+        <a href="https://www.linkedin.com/in/jeanc-almeida/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+          <span>LinkedIn</span>
+        </a>
+        <a href="https://github.com/JEAN-ALMEIDA-CZO/Hydro-Tracker-Plugin" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a href="https://portifolio.athos.app.br/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-2.8a15.7 15.7 0 0 0-1.3-3.6A8 8 0 0 1 18.9 8zM12 4c.8 1.1 1.5 2.5 1.9 4h-3.8c.4-1.5 1.1-2.9 1.9-4zM4.3 14a8 8 0 0 1 0-4h3.2a16.8 16.8 0 0 0 0 4H4.3zm.8 2h2.8c.3 1.3.8 2.5 1.3 3.6A8 8 0 0 1 5.1 16zm2.8-8H5.1a8 8 0 0 1 4.1-3.6A15.7 15.7 0 0 0 7.9 8zM12 20c-.8-1.1-1.5-2.5-1.9-4h3.8c-.4 1.5-1.1 2.9-1.9 4zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4zm.4 5.6c.5-1.1 1-2.3 1.3-3.6h2.8a8 8 0 0 1-4.1 3.6zM16.5 14a16.8 16.8 0 0 0 0-4h3.2a8 8 0 0 1 0 4h-3.2z"/></svg>
+          <span id="c_site">Portfolio</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot" id="foot">💧 Hydro Tracker — Ulanzi Deck plugin</div>
+</div>
+
+<script>
+const FORMULA = {
+  en:'goal = ⌈ weight(kg) × ml/kg × heat ÷ container(ml) ⌉ · interval = 16 h ÷ goal',
+  pt_BR:'meta = ⌈ peso(kg) × ml/kg × calor ÷ recipiente(ml) ⌉ · intervalo = 16 h ÷ meta',
+  pt_PT:'meta = ⌈ peso(kg) × ml/kg × calor ÷ recipiente(ml) ⌉ · intervalo = 16 h ÷ meta',
+  es_ES:'meta = ⌈ peso(kg) × ml/kg × calor ÷ recipiente(ml) ⌉ · intervalo = 16 h ÷ meta',
+  fr_FR:'objectif = ⌈ poids(kg) × ml/kg × chaleur ÷ contenant(ml) ⌉ · intervalle = 16 h ÷ objectif',
+  de_DE:'Ziel = ⌈ Gewicht(kg) × ml/kg × Hitze ÷ Behälter(ml) ⌉ · Intervall = 16 h ÷ Ziel',
+  it_IT:'obiettivo = ⌈ peso(kg) × ml/kg × caldo ÷ contenitore(ml) ⌉ · intervallo = 16 h ÷ obiettivo',
+  ja_JP:'目標 = ⌈ 体重(kg) × ml/kg × 暑さ ÷ 容器(ml) ⌉ · 間隔 = 16 h ÷ 目標',
+  ko_KR:'목표 = ⌈ 체중(kg) × ml/kg × 더위 ÷ 용기(ml) ⌉ · 간격 = 16 h ÷ 목표',
+  zh_CN:'目标 = ⌈ 体重(kg) × ml/kg × 炎热 ÷ 容器(ml) ⌉ · 间隔 = 16 h ÷ 目标',
+  zh_HK:'目標 = ⌈ 體重(kg) × ml/kg × 炎熱 ÷ 容器(ml) ⌉ · 間隔 = 16 h ÷ 目標'
+};
+const SRC = { en:'Sources', pt_BR:'Fontes', pt_PT:'Fontes', es_ES:'Fuentes', fr_FR:'Sources', de_DE:'Quellen', it_IT:'Fonti', ja_JP:'出典', ko_KR:'출처', zh_CN:'来源', zh_HK:'來源' };
+const CITES = 'EFSA Panel on Dietetic Products, Nutrition and Allergies — Scientific Opinion on Dietary Reference Values for water (EFSA Journal, 2010). · Holliday MA, Segar WE — The maintenance need for water in parenteral fluid therapy (Pediatrics, 1957). · WHO / Institute of Medicine dietary water intake guidance.';
+
+const TUT = {
+  en:{ title:'<span class="g">Hydro</span> Tracker', sub:'Smart water reminders for your Ulanzi Deck',
+    p_what:'The goal of Hydro Tracker is simple: keep you drinking water through the day without thinking about it. From your profile it computes a personal daily target, splits it across your waking hours, and counts down on the key to your next glass — so hydration becomes a habit, not a chore.',
+    k_how:'Setup', h_how:'How it works',
+    l_how:['Set your profile: age group, weight and your glass/bottle size.','The plugin calculates your daily goal and the interval between glasses.','Each time you drink, press the key — the countdown restarts for the next glass.','When the timer runs out, the key alerts you (and optionally a desktop notification).','Repeat until you hit the goal — the key floods green to celebrate.'],
+    k_cfg:'Best practice', h_cfg:'Set it up correctly',
+    l_cfg:['<b>Weight</b> — enter your real body weight (kg or lbs). The whole goal scales from it, so accuracy matters.','<b>Container</b> — set the size you actually drink from (glass, bottle, mug) in ml, L or oz. Bigger container → fewer, longer intervals.','<b>Adult / Child</b> — pick the correct age group; children need more water per kg (see below).','<b>Summer</b> — turn on for hot days or heavy exercise to add +15%.','<b>Quiet hours</b> — set your sleep window so it never alerts you at night.','<b>Press on every sip-session</b> — the count only advances when you press the key, so press it each time you finish a glass.'],
+    k_sci:'The science', h_sci:'Scientific basis',
+    sci_intro:'The daily target is built from a transparent, weight-based hydration rule — the same logic clinicians use for maintenance fluids:',
+    l_sci:['<b>Adult — 35 ml per kg / day.</b> A widely used practical rule (~30–40 ml/kg/day). Example: 70 kg → 2450 ml ≈ 2.5 L, close to EFSA’s adequate intake for adults.','<b>Child — 50 ml per kg / day.</b> Children need more water per kilogram because of a higher metabolic rate and a larger body-surface-to-mass ratio (basis of the Holliday–Segar maintenance method).','<b>Active window</b> — the goal is divided evenly over ~16 waking hours to set the reminder interval (no alerts while you sleep).','<b>Heat / exercise</b> — Summer mode adds +15% to offset extra fluid lost through sweat.'],
+    k_phases:'Reference', h_phases:'The four states',
+    l_phases:[['#5FA8E0','HYDRATE — idle','Waiting to start your day. Press the key after your first glass.'],['#00B4D8','DRINK — running','Counting down to your next glass; the ring drains.'],['alert','DRINK! — alert','Time is up — drink now. The key blinks to get your attention.'],['#2ECC71','DONE — goal','Daily goal reached — the key floods with water. 🎉']],
+    phases_note:'Press the key whenever you drink. In the last 7 seconds the ring blinks before the alert.',
+    k_use:'On the key', h_use:'Reading the key',
+    l_use:['Centre: time left until your next glass (mm:ss).','Ring: drains as the interval counts down.','Dots: glasses in your daily goal and how many you’ve had.','Label: the current state (HYDRATE / DRINK / DRINK! / DONE).'],
+    k_tips:'Get the most', h_tips:'Tips',
+    l_tips:['Set your real weight and usual glass size for an accurate goal.','Turn on Summer for +15% water on hot days.','Use Quiet hours to silence alerts at night.','Pick a theme and water animation (ripples, falling drop, tide) you like.'],
+    c_by:'Developed by', foot:'💧 Hydro Tracker — Ulanzi Deck plugin' },
+
+  pt_BR:{ title:'<span class="g">Hydro</span> Tracker', sub:'Lembretes inteligentes de água para o seu Ulanzi Deck',
+    p_what:'O intuito do Hydro Tracker é simples: manter você bebendo água ao longo do dia sem precisar pensar nisso. A partir do seu perfil ele calcula uma meta diária personalizada, distribui pelas horas acordado e faz a contagem regressiva na tecla até o próximo copo — transformando a hidratação em hábito, não em tarefa.',
+    k_how:'Configuração', h_how:'Como funciona',
+    l_how:['Defina seu perfil: faixa etária, peso e o tamanho do copo/garrafa.','O plugin calcula a meta diária e o intervalo entre os copos.','Cada vez que beber, pressione a tecla — a contagem reinicia para o próximo copo.','Quando o tempo acaba, a tecla avisa (e opcionalmente uma notificação no desktop).','Repita até bater a meta — a tecla enche de água em verde para comemorar.'],
+    k_cfg:'Boas práticas', h_cfg:'Configure corretamente',
+    l_cfg:['<b>Peso</b> — informe seu peso real (kg ou lbs). Toda a meta escala a partir dele, então precisão importa.','<b>Recipiente</b> — coloque o tamanho que você realmente usa (copo, garrafa, caneca) em ml, L ou oz. Recipiente maior → menos copos, intervalos mais longos.','<b>Adulto / Criança</b> — escolha a faixa etária certa; crianças precisam de mais água por kg (veja abaixo).','<b>Verão</b> — ative em dias quentes ou exercício intenso para somar +15%.','<b>Silêncio</b> — defina seu horário de sono para nunca te avisar à noite.','<b>Pressione a cada copo</b> — a contagem só avança quando você pressiona a tecla, então pressione sempre que terminar um copo.'],
+    k_sci:'A ciência', h_sci:'Base científica',
+    sci_intro:'A meta diária vem de uma regra de hidratação transparente, baseada no peso — a mesma lógica que clínicos usam para fluidos de manutenção:',
+    l_sci:['<b>Adulto — 35 ml por kg / dia.</b> Regra prática muito usada (~30–40 ml/kg/dia). Exemplo: 70 kg → 2450 ml ≈ 2,5 L, próximo da ingestão adequada da EFSA para adultos.','<b>Criança — 50 ml por kg / dia.</b> Crianças precisam de mais água por quilo devido à maior taxa metabólica e à maior razão entre superfície corporal e massa (base do método de manutenção de Holliday–Segar).','<b>Janela ativa</b> — a meta é dividida igualmente ao longo de ~16 horas acordado para definir o intervalo dos lembretes (sem avisos enquanto você dorme).','<b>Calor / exercício</b> — o modo Verão adiciona +15% para compensar o líquido perdido no suor.'],
+    k_phases:'Referência', h_phases:'Os quatro estados',
+    l_phases:[['#5FA8E0','HIDRATAR — parado','Aguardando começar o dia. Pressione a tecla após o primeiro copo.'],['#00B4D8','BEBER — em contagem','Contagem regressiva até o próximo copo; o anel esvazia.'],['alert','BEBA! — alerta','Tempo esgotado — beba agora. A tecla pisca para chamar atenção.'],['#2ECC71','PRONTO — meta','Meta diária alcançada — a tecla se enche de água. 🎉']],
+    phases_note:'Pressione a tecla sempre que beber. Nos últimos 7 segundos o anel pisca antes do alerta.',
+    k_use:'Na tecla', h_use:'Lendo a tecla',
+    l_use:['Centro: tempo restante até o próximo copo (mm:ss).','Anel: esvazia conforme o intervalo passa.','Pontos: copos da meta diária e quantos você já tomou.','Rótulo: o estado atual (HIDRATAR / BEBER / BEBA! / PRONTO).'],
+    k_tips:'Aproveite ao máximo', h_tips:'Dicas',
+    l_tips:['Coloque seu peso real e o tamanho do copo para uma meta precisa.','Ative o Verão para +15% de água em dias quentes.','Use o Silêncio para não receber avisos à noite.','Escolha um tema e a animação da água (ondas, gota caindo, maré).'],
+    c_by:'Desenvolvido por', foot:'💧 Hydro Tracker — plugin para Ulanzi Deck' },
+
+  pt_PT:{ title:'<span class="g">Hydro</span> Tracker', sub:'Lembretes inteligentes de água para o seu Ulanzi Deck',
+    p_what:'O intuito do Hydro Tracker é simples: manter-te a beber água ao longo do dia sem teres de pensar nisso. A partir do teu perfil calcula uma meta diária personalizada, distribui-a pelas horas acordado e faz a contagem decrescente na tecla até ao próximo copo — tornando a hidratação num hábito, não numa tarefa.',
+    k_how:'Configuração', h_how:'Como funciona',
+    l_how:['Define o teu perfil: faixa etária, peso e o tamanho do copo/garrafa.','O plugin calcula a meta diária e o intervalo entre os copos.','Sempre que beberes, prime a tecla — a contagem recomeça para o próximo copo.','Quando o tempo termina, a tecla avisa (e opcionalmente uma notificação no ambiente de trabalho).','Repete até atingir a meta — a tecla enche de água em verde para celebrar.'],
+    k_cfg:'Boas práticas', h_cfg:'Configura corretamente',
+    l_cfg:['<b>Peso</b> — indica o teu peso real (kg ou lbs). Toda a meta escala a partir dele, por isso a precisão importa.','<b>Recipiente</b> — define o tamanho que realmente usas (copo, garrafa, caneca) em ml, L ou oz. Recipiente maior → menos copos, intervalos mais longos.','<b>Adulto / Criança</b> — escolhe a faixa etária certa; as crianças precisam de mais água por kg (ver abaixo).','<b>Verão</b> — ativa em dias quentes ou exercício intenso para somar +15%.','<b>Silêncio</b> — define o teu horário de sono para nunca te avisar à noite.','<b>Prime a cada copo</b> — a contagem só avança quando primes a tecla, por isso prime sempre que acabares um copo.'],
+    k_sci:'A ciência', h_sci:'Base científica',
+    sci_intro:'A meta diária resulta de uma regra de hidratação transparente, baseada no peso — a mesma lógica que os clínicos usam para fluidos de manutenção:',
+    l_sci:['<b>Adulto — 35 ml por kg / dia.</b> Regra prática muito usada (~30–40 ml/kg/dia). Exemplo: 70 kg → 2450 ml ≈ 2,5 L, próximo da ingestão adequada da EFSA para adultos.','<b>Criança — 50 ml por kg / dia.</b> As crianças precisam de mais água por quilo devido à maior taxa metabólica e à maior razão entre superfície corporal e massa (base do método de manutenção de Holliday–Segar).','<b>Janela ativa</b> — a meta é dividida igualmente ao longo de ~16 horas acordado para definir o intervalo dos lembretes (sem avisos enquanto dormes).','<b>Calor / exercício</b> — o modo Verão adiciona +15% para compensar o líquido perdido no suor.'],
+    k_phases:'Referência', h_phases:'Os quatro estados',
+    l_phases:[['#5FA8E0','HIDRATAR — parado','À espera de começar o dia. Prime a tecla após o primeiro copo.'],['#00B4D8','BEBER — em contagem','Contagem decrescente até ao próximo copo; o anel esvazia.'],['alert','BEBA! — alerta','Tempo esgotado — beba agora. A tecla pisca para chamar a atenção.'],['#2ECC71','PRONTO — meta','Meta diária atingida — a tecla enche-se de água. 🎉']],
+    phases_note:'Prime a tecla sempre que beberes. Nos últimos 7 segundos o anel pisca antes do alerta.',
+    k_use:'Na tecla', h_use:'Ler a tecla',
+    l_use:['Centro: tempo restante até ao próximo copo (mm:ss).','Anel: esvazia à medida que o intervalo decorre.','Pontos: copos da meta diária e quantos já bebeste.','Rótulo: o estado atual (HIDRATAR / BEBER / BEBA! / PRONTO).'],
+    k_tips:'Tira o máximo', h_tips:'Dicas',
+    l_tips:['Coloca o teu peso real e o tamanho do copo para uma meta precisa.','Ativa o Verão para +15% de água em dias quentes.','Usa o Silêncio para não receber avisos à noite.','Escolhe um tema e a animação da água (ondas, gota a cair, maré).'],
+    c_by:'Desenvolvido por', foot:'💧 Hydro Tracker — plugin para Ulanzi Deck' },
+
+  es_ES:{ title:'<span class="g">Hydro</span> Tracker', sub:'Recordatorios inteligentes de agua para tu Ulanzi Deck',
+    p_what:'El propósito de Hydro Tracker es simple: que sigas bebiendo agua durante el día sin pensar en ello. Desde tu perfil calcula una meta diaria personal, la reparte en tus horas despierto y hace una cuenta atrás en la tecla hasta tu próximo vaso — convirtiendo la hidratación en un hábito, no en una tarea.',
+    k_how:'Configuración', h_how:'Cómo funciona',
+    l_how:['Define tu perfil: grupo de edad, peso y el tamaño de tu vaso/botella.','El plugin calcula tu meta diaria y el intervalo entre vasos.','Cada vez que bebas, pulsa la tecla — la cuenta atrás se reinicia para el siguiente vaso.','Cuando se acaba el tiempo, la tecla te avisa (y opcionalmente una notificación de escritorio).','Repite hasta alcanzar la meta — la tecla se llena de agua en verde para celebrarlo.'],
+    k_cfg:'Buenas prácticas', h_cfg:'Configúralo correctamente',
+    l_cfg:['<b>Peso</b> — introduce tu peso real (kg o lbs). Toda la meta escala desde él, así que la precisión importa.','<b>Recipiente</b> — pon el tamaño que realmente usas (vaso, botella, taza) en ml, L u oz. Recipiente mayor → menos vasos, intervalos más largos.','<b>Adulto / Niño</b> — elige el grupo de edad correcto; los niños necesitan más agua por kg (ver abajo).','<b>Verano</b> — actívalo en días calurosos o ejercicio intenso para sumar +15%.','<b>Silencio</b> — define tu horario de sueño para que nunca te avise de noche.','<b>Pulsa en cada vaso</b> — la cuenta solo avanza al pulsar la tecla, así que púlsala cada vez que termines un vaso.'],
+    k_sci:'La ciencia', h_sci:'Base científica',
+    sci_intro:'La meta diaria parte de una regla de hidratación transparente, basada en el peso — la misma lógica que usan los clínicos para los fluidos de mantenimiento:',
+    l_sci:['<b>Adulto — 35 ml por kg / día.</b> Regla práctica muy usada (~30–40 ml/kg/día). Ejemplo: 70 kg → 2450 ml ≈ 2,5 L, cercano a la ingesta adecuada de la EFSA para adultos.','<b>Niño — 50 ml por kg / día.</b> Los niños necesitan más agua por kilo por su mayor tasa metabólica y mayor relación superficie-masa corporal (base del método de mantenimiento de Holliday–Segar).','<b>Ventana activa</b> — la meta se divide por igual en ~16 horas despierto para fijar el intervalo de recordatorio (sin avisos mientras duermes).','<b>Calor / ejercicio</b> — el modo Verano añade +15% para compensar el líquido perdido por el sudor.'],
+    k_phases:'Referencia', h_phases:'Los cuatro estados',
+    l_phases:[['#5FA8E0','HIDRATAR — inactivo','Esperando para empezar el día. Pulsa la tecla tras el primer vaso.'],['#00B4D8','BEBER — en cuenta','Cuenta atrás hasta el próximo vaso; el anillo se vacía.'],['alert','¡BEBE! — alerta','Se acabó el tiempo — bebe ahora. La tecla parpadea para llamar la atención.'],['#2ECC71','LISTO — meta','Meta diaria alcanzada — la tecla se llena de agua. 🎉']],
+    phases_note:'Pulsa la tecla cada vez que bebas. En los últimos 7 segundos el anillo parpadea antes de la alerta.',
+    k_use:'En la tecla', h_use:'Leer la tecla',
+    l_use:['Centro: tiempo hasta el próximo vaso (mm:ss).','Anillo: se vacía mientras avanza el intervalo.','Puntos: vasos de la meta diaria y cuántos llevas.','Etiqueta: el estado actual (HIDRATAR / BEBER / ¡BEBE! / LISTO).'],
+    k_tips:'Aprovecha al máximo', h_tips:'Consejos',
+    l_tips:['Pon tu peso real y el tamaño del vaso para una meta precisa.','Activa Verano para +15% de agua en días calurosos.','Usa el modo Silencio para no recibir avisos de noche.','Elige un tema y una animación de agua (ondas, gota, marea).'],
+    c_by:'Desarrollado por', foot:'💧 Hydro Tracker — plugin para Ulanzi Deck' },
+
+  fr_FR:{ title:'<span class="g">Hydro</span> Tracker', sub:'Rappels d’eau intelligents pour votre Ulanzi Deck',
+    p_what:'Le but d’Hydro Tracker est simple : vous faire boire de l’eau toute la journée sans y penser. À partir de votre profil, il calcule un objectif quotidien personnel, le répartit sur vos heures d’éveil et décompte sur la touche jusqu’à votre prochain verre — l’hydratation devient une habitude, pas une corvée.',
+    k_how:'Configuration', h_how:'Fonctionnement',
+    l_how:['Définissez votre profil : tranche d’âge, poids et la taille de votre verre/bouteille.','Le plugin calcule votre objectif quotidien et l’intervalle entre les verres.','À chaque fois que vous buvez, appuyez sur la touche — le décompte repart pour le verre suivant.','Quand le temps est écoulé, la touche vous alerte (et, en option, une notification bureau).','Répétez jusqu’à l’objectif — la touche se remplit d’eau en vert pour célébrer.'],
+    k_cfg:'Bonnes pratiques', h_cfg:'Bien le configurer',
+    l_cfg:['<b>Poids</b> — saisissez votre poids réel (kg ou lbs). Tout l’objectif en découle, la précision compte.','<b>Contenant</b> — indiquez la taille que vous utilisez vraiment (verre, bouteille, mug) en ml, L ou oz. Plus grand → moins de verres, intervalles plus longs.','<b>Adulte / Enfant</b> — choisissez la bonne tranche d’âge ; les enfants ont besoin de plus d’eau par kg (voir ci-dessous).','<b>Été</b> — activez par forte chaleur ou exercice intense pour ajouter +15%.','<b>Heures calmes</b> — définissez votre fenêtre de sommeil pour ne jamais être alerté la nuit.','<b>Appuyez à chaque verre</b> — le compte n’avance qu’en appuyant sur la touche, alors appuyez à chaque verre terminé.'],
+    k_sci:'La science', h_sci:'Base scientifique',
+    sci_intro:'L’objectif quotidien repose sur une règle d’hydratation transparente, basée sur le poids — la même logique que les cliniciens utilisent pour les fluides d’entretien :',
+    l_sci:['<b>Adulte — 35 ml par kg / jour.</b> Règle pratique courante (~30–40 ml/kg/jour). Exemple : 70 kg → 2450 ml ≈ 2,5 L, proche de l’apport adéquat de l’EFSA pour adultes.','<b>Enfant — 50 ml par kg / jour.</b> Les enfants ont besoin de plus d’eau par kilo en raison d’un métabolisme plus élevé et d’un rapport surface/masse corporelle plus grand (base de la méthode d’entretien de Holliday–Segar).','<b>Fenêtre active</b> — l’objectif est réparti également sur ~16 heures d’éveil pour fixer l’intervalle de rappel (pas d’alerte la nuit).','<b>Chaleur / sport</b> — le mode Été ajoute +15% pour compenser l’eau perdue par la transpiration.'],
+    k_phases:'Référence', h_phases:'Les quatre états',
+    l_phases:[['#5FA8E0','HYDRATER — au repos','En attente de commencer la journée. Appuyez après le premier verre.'],['#00B4D8','BOIRE — décompte','Décompte jusqu’au prochain verre ; l’anneau se vide.'],['alert','BOIS ! — alerte','Temps écoulé — buvez maintenant. La touche clignote pour attirer l’attention.'],['#2ECC71','FAIT — objectif','Objectif atteint — la touche se remplit d’eau. 🎉']],
+    phases_note:'Appuyez sur la touche dès que vous buvez. Dans les 7 dernières secondes l’anneau clignote avant l’alerte.',
+    k_use:'Sur la touche', h_use:'Lire la touche',
+    l_use:['Centre : temps avant le prochain verre (mm:ss).','Anneau : se vide au fil de l’intervalle.','Points : verres de l’objectif et nombre déjà bus.','Libellé : l’état actuel (HYDRATER / BOIRE / BOIS ! / FAIT).'],
+    k_tips:'Tirez-en le meilleur', h_tips:'Astuces',
+    l_tips:['Indiquez votre poids réel et la taille du verre pour un objectif précis.','Activez Été pour +15% d’eau les jours chauds.','Utilisez le mode Silence pour couper les alertes la nuit.','Choisissez un thème et une animation d’eau (ondes, goutte, marée).'],
+    c_by:'Développé par', foot:'💧 Hydro Tracker — plugin Ulanzi Deck' },
+
+  de_DE:{ title:'<span class="g">Hydro</span> Tracker', sub:'Smarte Trink-Erinnerungen für dein Ulanzi Deck',
+    p_what:'Das Ziel von Hydro Tracker ist einfach: dich über den Tag zum Trinken zu bringen, ohne darüber nachzudenken. Aus deinem Profil berechnet es ein persönliches Tagesziel, verteilt es über deine Wachstunden und zählt auf der Taste bis zum nächsten Glas herunter — so wird Hydration zur Gewohnheit statt zur Pflicht.',
+    k_how:'Einrichtung', h_how:'So funktioniert es',
+    l_how:['Lege dein Profil fest: Altersgruppe, Gewicht und deine Glas-/Flaschengröße.','Das Plugin berechnet dein Tagesziel und den Abstand zwischen den Gläsern.','Jedes Mal, wenn du trinkst, drücke die Taste — der Countdown startet fürs nächste Glas neu.','Läuft die Zeit ab, warnt dich die Taste (optional auch eine Desktop-Benachrichtigung).','Wiederhole bis zum Ziel — die Taste flutet zur Feier grün.'],
+    k_cfg:'Bewährte Praxis', h_cfg:'Richtig einrichten',
+    l_cfg:['<b>Gewicht</b> — trage dein echtes Körpergewicht ein (kg oder lbs). Das ganze Ziel skaliert daraus, Genauigkeit zählt.','<b>Behälter</b> — gib die Größe an, aus der du wirklich trinkst (Glas, Flasche, Tasse) in ml, L oder oz. Größer → weniger Gläser, längere Intervalle.','<b>Erwachsener / Kind</b> — wähle die richtige Altersgruppe; Kinder brauchen mehr Wasser pro kg (siehe unten).','<b>Sommer</b> — an heißen Tagen oder bei intensivem Sport für +15% aktivieren.','<b>Ruhezeiten</b> — lege dein Schlaffenster fest, damit dich nachts nichts warnt.','<b>Bei jedem Glas drücken</b> — die Zählung steigt nur beim Tastendruck, also drücke nach jedem ausgetrunkenen Glas.'],
+    k_sci:'Die Wissenschaft', h_sci:'Wissenschaftliche Grundlage',
+    sci_intro:'Das Tagesziel basiert auf einer transparenten, gewichtsbasierten Hydrationsregel — dieselbe Logik, die Ärzte für Erhaltungsflüssigkeit nutzen:',
+    l_sci:['<b>Erwachsener — 35 ml pro kg / Tag.</b> Verbreitete Faustregel (~30–40 ml/kg/Tag). Beispiel: 70 kg → 2450 ml ≈ 2,5 L, nahe der EFSA-Zufuhrempfehlung für Erwachsene.','<b>Kind — 50 ml pro kg / Tag.</b> Kinder brauchen mehr Wasser pro Kilo wegen höherem Stoffwechsel und größerem Verhältnis von Körperoberfläche zu Masse (Basis der Holliday–Segar-Erhaltungsmethode).','<b>Aktives Fenster</b> — das Ziel wird gleichmäßig auf ~16 Wachstunden verteilt, um das Erinnerungsintervall zu setzen (keine Hinweise im Schlaf).','<b>Hitze / Sport</b> — der Sommer-Modus addiert +15%, um den zusätzlichen Schweißverlust auszugleichen.'],
+    k_phases:'Referenz', h_phases:'Die vier Zustände',
+    l_phases:[['#5FA8E0','HYDRIEREN — Leerlauf','Wartet auf den Tagesstart. Taste nach dem ersten Glas drücken.'],['#00B4D8','TRINKEN — läuft','Countdown bis zum nächsten Glas; der Ring leert sich.'],['alert','TRINK! — Alarm','Zeit ist um — jetzt trinken. Die Taste blinkt zur Aufmerksamkeit.'],['#2ECC71','FERTIG — Ziel','Tagesziel erreicht — die Taste flutet mit Wasser. 🎉']],
+    phases_note:'Drücke die Taste, wann immer du trinkst. In den letzten 7 Sekunden blinkt der Ring vor dem Alarm.',
+    k_use:'Auf der Taste', h_use:'Die Taste lesen',
+    l_use:['Mitte: Zeit bis zum nächsten Glas (mm:ss).','Ring: leert sich während des Intervalls.','Punkte: Gläser im Tagesziel und wie viele du hattest.','Label: der aktuelle Zustand (HYDRIEREN / TRINKEN / TRINK! / FERTIG).'],
+    k_tips:'Hol das Beste heraus', h_tips:'Tipps',
+    l_tips:['Trage dein echtes Gewicht und die Glasgröße für ein genaues Ziel ein.','Aktiviere Sommer für +15% Wasser an heißen Tagen.','Nutze Ruhe-Zeiten, um nachts keine Hinweise zu bekommen.','Wähle ein Design und eine Wasser-Animation (Wellen, Tropfen, Gezeiten).'],
+    c_by:'Entwickelt von', foot:'💧 Hydro Tracker — Ulanzi-Deck-Plugin' },
+
+  it_IT:{ title:'<span class="g">Hydro</span> Tracker', sub:'Promemoria intelligenti dell’acqua per il tuo Ulanzi Deck',
+    p_what:'Lo scopo di Hydro Tracker è semplice: farti bere acqua durante il giorno senza pensarci. Dal tuo profilo calcola un obiettivo giornaliero personale, lo distribuisce nelle ore di veglia e fa il conto alla rovescia sul tasto fino al prossimo bicchiere — così l’idratazione diventa un’abitudine, non un dovere.',
+    k_how:'Configurazione', h_how:'Come funziona',
+    l_how:['Imposta il profilo: fascia d’età, peso e la dimensione del bicchiere/bottiglia.','Il plugin calcola l’obiettivo giornaliero e l’intervallo tra i bicchieri.','Ogni volta che bevi, premi il tasto — il conto alla rovescia riparte per il bicchiere successivo.','Quando il tempo finisce, il tasto ti avvisa (e, in opzione, una notifica desktop).','Ripeti fino all’obiettivo — il tasto si riempie d’acqua in verde per festeggiare.'],
+    k_cfg:'Buone pratiche', h_cfg:'Configuralo correttamente',
+    l_cfg:['<b>Peso</b> — inserisci il tuo peso reale (kg o lbs). Tutto l’obiettivo scala da lì, quindi la precisione conta.','<b>Contenitore</b> — imposta la dimensione che usi davvero (bicchiere, bottiglia, tazza) in ml, L o oz. Più grande → meno bicchieri, intervalli più lunghi.','<b>Adulto / Bambino</b> — scegli la fascia d’età giusta; i bambini hanno bisogno di più acqua per kg (vedi sotto).','<b>Estate</b> — attiva nei giorni caldi o con esercizio intenso per aggiungere +15%.','<b>Ore di silenzio</b> — imposta la tua finestra di sonno per non essere avvisato di notte.','<b>Premi a ogni bicchiere</b> — il conteggio avanza solo premendo il tasto, quindi premilo ogni volta che finisci un bicchiere.'],
+    k_sci:'La scienza', h_sci:'Base scientifica',
+    sci_intro:'L’obiettivo giornaliero nasce da una regola di idratazione trasparente, basata sul peso — la stessa logica usata dai clinici per i fluidi di mantenimento:',
+    l_sci:['<b>Adulto — 35 ml per kg / giorno.</b> Regola pratica diffusa (~30–40 ml/kg/giorno). Esempio: 70 kg → 2450 ml ≈ 2,5 L, vicino all’assunzione adeguata EFSA per gli adulti.','<b>Bambino — 50 ml per kg / giorno.</b> I bambini hanno bisogno di più acqua per chilo per il metabolismo più alto e il maggiore rapporto superficie/massa corporea (base del metodo di mantenimento di Holliday–Segar).','<b>Finestra attiva</b> — l’obiettivo è diviso equamente su ~16 ore di veglia per impostare l’intervallo dei promemoria (nessun avviso mentre dormi).','<b>Caldo / esercizio</b> — la modalità Estate aggiunge +15% per compensare i liquidi persi con il sudore.'],
+    k_phases:'Riferimento', h_phases:'I quattro stati',
+    l_phases:[['#5FA8E0','IDRATA — inattivo','In attesa di iniziare la giornata. Premi il tasto dopo il primo bicchiere.'],['#00B4D8','BEVI — in corso','Conto alla rovescia fino al prossimo bicchiere; l’anello si svuota.'],['alert','BEVI! — avviso','Tempo scaduto — bevi ora. Il tasto lampeggia per attirare l’attenzione.'],['#2ECC71','FATTO — obiettivo','Obiettivo raggiunto — il tasto si riempie d’acqua. 🎉']],
+    phases_note:'Premi il tasto ogni volta che bevi. Negli ultimi 7 secondi l’anello lampeggia prima dell’avviso.',
+    k_use:'Sul tasto', h_use:'Leggere il tasto',
+    l_use:['Centro: tempo al prossimo bicchiere (mm:ss).','Anello: si svuota durante l’intervallo.','Punti: bicchieri dell’obiettivo e quanti ne hai bevuti.','Etichetta: lo stato attuale (IDRATA / BEVI / BEVI! / FATTO).'],
+    k_tips:'Sfrutta al massimo', h_tips:'Suggerimenti',
+    l_tips:['Inserisci il peso reale e la dimensione del bicchiere per un obiettivo preciso.','Attiva Estate per +15% d’acqua nei giorni caldi.','Usa le ore di Silenzio per niente avvisi di notte.','Scegli un tema e un’animazione dell’acqua (onde, goccia, marea).'],
+    c_by:'Sviluppato da', foot:'💧 Hydro Tracker — plugin Ulanzi Deck' },
+
+  ja_JP:{ title:'<span class="g">Hydro</span> Tracker', sub:'Ulanzi Deck 用のスマート水分リマインダー',
+    p_what:'Hydro Tracker の狙いはシンプル — 考えなくても一日を通して水を飲み続けられるようにすることです。プロフィールから1日の個人目標を計算し、起きている時間に振り分け、キー上で次の一杯までカウントダウン。水分補給を義務ではなく習慣にします。',
+    k_how:'設定', h_how:'仕組み',
+    l_how:['プロフィールを設定：年齢層、体重、コップ／ボトルのサイズ。','プラグインが1日の目標とコップ間の間隔を計算します。','飲むたびにキーを押すと、次のコップへカウントダウンが再開します。','時間切れになるとキーが知らせます（任意でデスクトップ通知も）。','目標まで繰り返すと、キーが緑の水で満たされてお祝いします。'],
+    k_cfg:'ベストプラクティス', h_cfg:'正しく設定する',
+    l_cfg:['<b>体重</b> — 実際の体重（kg または lbs）を入力。目標全体がここから計算されるので正確さが重要。','<b>容器</b> — 実際に使うサイズ（コップ・ボトル・マグ）を ml・L・oz で設定。大きいほど杯数が減り間隔が長くなる。','<b>大人 / 子供</b> — 正しい年齢層を選択。子供は体重あたりより多くの水が必要（下記参照）。','<b>夏</b> — 暑い日や激しい運動の日にオンにして +15%。','<b>静音時間</b> — 睡眠時間を設定して夜は通知させない。','<b>飲むたびに押す</b> — キーを押したときだけカウントが進むので、一杯飲み終えるたびに押す。'],
+    k_sci:'科学的根拠', h_sci:'科学的根拠',
+    sci_intro:'1日の目標は、体重に基づく透明な水分補給ルール — 臨床で維持輸液に使うのと同じ考え方 — から作られます：',
+    l_sci:['<b>大人 — 1日あたり体重1kgにつき35ml。</b> 広く使われる実用ルール（約30〜40 ml/kg/日）。例：70kg → 2450ml ≈ 2.5L、EFSA の成人推奨摂取量に近い。','<b>子供 — 1日あたり体重1kgにつき50ml。</b> 子供は代謝が高く体表面積と体重の比が大きいため、1kgあたりより多くの水が必要（Holliday–Segar 維持法の基礎）。','<b>活動時間枠</b> — 目標は起きている約16時間に均等に分けてリマインド間隔を決定（睡眠中は通知なし）。','<b>暑さ / 運動</b> — 夏モードは発汗で失う水分を補うため +15%。'],
+    k_phases:'リファレンス', h_phases:'4つの状態',
+    l_phases:[['#5FA8E0','補水 — 待機','一日の開始待ち。最初の一杯の後にキーを押します。'],['#00B4D8','飲む — 進行中','次の一杯までカウントダウン。リングが減っていきます。'],['alert','飲んで！ — 警告','時間切れ — 今すぐ飲みましょう。キーが点滅して知らせます。'],['#2ECC71','完了 — 目標','1日の目標達成 — キーが水で満たされます。🎉']],
+    phases_note:'飲むたびにキーを押してください。残り7秒でリングが点滅して警告します。',
+    k_use:'キー上', h_use:'キーの見方',
+    l_use:['中央：次の一杯までの残り時間（mm:ss）。','リング：間隔の進行に合わせて減ります。','ドット：1日の目標の杯数と飲んだ数。','ラベル：現在の状態（補水 / 飲む / 飲んで！ / 完了）。'],
+    k_tips:'活用のヒント', h_tips:'ヒント',
+    l_tips:['正確な目標のため、実際の体重とコップのサイズを設定。','暑い日は「夏」をオンにして水分+15%。','夜は「静音」で通知を止める。','好みのテーマと水のアニメーション（波紋・しずく・潮）を選ぶ。'],
+    c_by:'開発者', foot:'💧 Hydro Tracker — Ulanzi Deck プラグイン' },
+
+  ko_KR:{ title:'<span class="g">Hydro</span> Tracker', sub:'Ulanzi Deck용 스마트 물 마시기 알림',
+    p_what:'Hydro Tracker의 목표는 간단합니다 — 신경 쓰지 않아도 하루 종일 물을 마시게 하는 것. 프로필로 개인 하루 목표를 계산하고 깨어 있는 시간에 나눠, 키에서 다음 잔까지 카운트다운합니다. 수분 섭취가 의무가 아니라 습관이 됩니다.',
+    k_how:'설정', h_how:'작동 방식',
+    l_how:['프로필 설정: 연령대, 체중, 컵/병 용량.','플러그인이 하루 목표와 잔 사이 간격을 계산합니다.','마실 때마다 키를 누르면 다음 잔까지 카운트다운이 다시 시작됩니다.','시간이 다 되면 키가 알려 줍니다(선택적으로 데스크톱 알림도).','목표에 도달할 때까지 반복하면 키가 초록 물로 가득 차 축하합니다.'],
+    k_cfg:'권장 사항', h_cfg:'올바르게 설정하기',
+    l_cfg:['<b>체중</b> — 실제 체중(kg 또는 lbs)을 입력하세요. 전체 목표가 여기서 계산되므로 정확해야 합니다.','<b>용기</b> — 실제로 쓰는 크기(컵, 병, 머그)를 ml, L, oz로 설정하세요. 클수록 잔 수가 줄고 간격이 길어집니다.','<b>성인 / 어린이</b> — 올바른 연령대를 선택하세요. 어린이는 kg당 더 많은 물이 필요합니다(아래 참조).','<b>여름</b> — 더운 날이나 강한 운동 시 켜서 +15%.','<b>무음 시간</b> — 수면 시간을 설정해 밤에는 알리지 않도록 하세요.','<b>마실 때마다 누르기</b> — 키를 눌러야만 카운트가 진행되므로 잔을 비울 때마다 누르세요.'],
+    k_sci:'과학적 근거', h_sci:'과학적 근거',
+    sci_intro:'하루 목표는 체중 기반의 투명한 수분 규칙에서 나옵니다 — 임상에서 유지 수액에 쓰는 것과 같은 논리입니다:',
+    l_sci:['<b>성인 — 하루 체중 1kg당 35ml.</b> 널리 쓰이는 실용 규칙(약 30~40 ml/kg/일). 예: 70kg → 2450ml ≈ 2.5L, 성인에 대한 EFSA 적정 섭취량에 가깝습니다.','<b>어린이 — 하루 체중 1kg당 50ml.</b> 어린이는 대사율이 높고 체표면적 대 체중 비가 커서 kg당 더 많은 물이 필요합니다(Holliday–Segar 유지법의 근거).','<b>활동 시간대</b> — 목표를 깨어 있는 약 16시간에 균등 분배해 알림 간격을 정합니다(수면 중에는 알림 없음).','<b>더위 / 운동</b> — 여름 모드는 땀으로 잃는 수분을 보충하려고 +15%를 더합니다.'],
+    k_phases:'참고', h_phases:'네 가지 상태',
+    l_phases:[['#5FA8E0','수분 — 대기','하루 시작 대기. 첫 잔 후 키를 누르세요.'],['#00B4D8','마시기 — 진행','다음 잔까지 카운트다운; 링이 줄어듭니다.'],['alert','마셔요! — 경고','시간 종료 — 지금 마시세요. 키가 깜빡여 알립니다.'],['#2ECC71','완료 — 목표','하루 목표 달성 — 키가 물로 가득 찹니다. 🎉']],
+    phases_note:'마실 때마다 키를 누르세요. 마지막 7초 동안 링이 깜빡여 경고합니다.',
+    k_use:'키에서', h_use:'키 읽는 법',
+    l_use:['중앙: 다음 잔까지 남은 시간(mm:ss).','링: 간격이 진행될수록 줄어듭니다.','점: 하루 목표의 잔 수와 마신 수.','라벨: 현재 상태(수분 / 마시기 / 마셔요! / 완료).'],
+    k_tips:'최대한 활용하기', h_tips:'팁',
+    l_tips:['정확한 목표를 위해 실제 체중과 컵 용량을 입력하세요.','더운 날은 여름을 켜서 물 +15%.','밤에는 무음으로 알림을 끄세요.','마음에 드는 테마와 물 애니메이션(물결, 물방울, 조수)을 고르세요.'],
+    c_by:'개발자', foot:'💧 Hydro Tracker — Ulanzi Deck 플러그인' },
+
+  zh_CN:{ title:'<span class="g">Hydro</span> 喝水', sub:'Ulanzi Deck 的智能喝水提醒',
+    p_what:'Hydro Tracker 的初衷很简单：让你一整天不知不觉地坚持喝水。它根据你的资料计算个人每日目标，分配到清醒时间，并在按键上为下一杯倒计时——让补水成为习惯，而不是负担。',
+    k_how:'设置', h_how:'工作原理',
+    l_how:['设置资料：年龄组、体重和你的杯子/瓶子容量。','插件计算每日目标和两杯之间的间隔。','每次喝水后按下按键——倒计时为下一杯重新开始。','时间到时按键会提醒你（可选桌面通知）。','重复直到达成目标——按键灌满绿色的水来庆祝。'],
+    k_cfg:'最佳实践', h_cfg:'正确配置',
+    l_cfg:['<b>体重</b> — 填写真实体重（kg 或 lbs）。整个目标都由它换算，所以要准确。','<b>容器</b> — 设置你实际使用的大小（杯、瓶、马克杯），单位 ml、L 或 oz。容器越大，杯数越少、间隔越长。','<b>成人 / 儿童</b> — 选择正确的年龄组；儿童每公斤需要更多水（见下）。','<b>夏季</b> — 炎热或大量运动时开启，增加 +15%。','<b>静音时段</b> — 设置睡眠时间，夜间不打扰。','<b>每杯都按一下</b> — 只有按键时计数才前进，所以每喝完一杯就按一次。'],
+    k_sci:'科学依据', h_sci:'科学依据',
+    sci_intro:'每日目标来自一个透明的、基于体重的补水规则——与临床用于维持补液的逻辑相同：',
+    l_sci:['<b>成人 — 每公斤体重每天 35 ml。</b> 广泛使用的实用规则（约 30–40 ml/kg/天）。例如：70 kg → 2450 ml ≈ 2.5 L，接近 EFSA 对成人的适宜摄入量。','<b>儿童 — 每公斤体重每天 50 ml。</b> 儿童代谢率更高、体表面积与体重之比更大，因此每公斤需要更多水（Holliday–Segar 维持法的基础）。','<b>活动时段</b> — 目标平均分配到约 16 个清醒小时来确定提醒间隔（睡眠时不提醒）。','<b>炎热 / 运动</b> — 夏季模式增加 +15%，以补偿出汗流失的水分。'],
+    k_phases:'参考', h_phases:'四种状态',
+    l_phases:[['#5FA8E0','补水 — 空闲','等待开始新的一天。喝完第一杯后按键。'],['#00B4D8','喝水 — 进行中','倒计时到下一杯；圆环逐渐减少。'],['alert','快喝水！ — 警报','时间到——现在喝水。按键闪烁以引起注意。'],['#2ECC71','已完成 — 目标','达成每日目标——按键灌满水。🎉']],
+    phases_note:'每次喝水都按一下按键。最后 7 秒圆环会闪烁预警。',
+    k_use:'按键上', h_use:'读取按键',
+    l_use:['中部：到下一杯的剩余时间（mm:ss）。','圆环：随间隔倒计时减少。','圆点：每日目标的杯数及已喝数。','标签：当前状态（补水 / 喝水 / 快喝水！/ 已完成）。'],
+    k_tips:'用到极致', h_tips:'提示',
+    l_tips:['填写真实体重和杯子容量，目标更准确。','炎热天气开启「夏季」获得 +15% 水。','使用「静音」时段在夜间关闭提醒。','选择喜欢的主题和水动画（涟漪、水滴、潮汐）。'],
+    c_by:'开发者', foot:'💧 Hydro 喝水 — Ulanzi Deck 插件' },
+
+  zh_HK:{ title:'<span class="g">Hydro</span> 喝水', sub:'Ulanzi Deck 的智能喝水提醒',
+    p_what:'Hydro Tracker 的初衷很簡單：讓你一整天不知不覺地堅持喝水。它根據你的資料計算個人每日目標，分配到清醒時間，並在按鍵上為下一杯倒數——讓補水成為習慣，而不是負擔。',
+    k_how:'設定', h_how:'運作方式',
+    l_how:['設定資料：年齡組、體重和你的杯子/瓶子容量。','外掛計算每日目標和兩杯之間的間隔。','每次喝水後按下按鍵——倒數為下一杯重新開始。','時間到時按鍵會提醒你（可選桌面通知）。','重複直到達成目標——按鍵灌滿綠色的水來慶祝。'],
+    k_cfg:'最佳實踐', h_cfg:'正確設定',
+    l_cfg:['<b>體重</b> — 填寫真實體重（kg 或 lbs）。整個目標都由它換算，所以要準確。','<b>容器</b> — 設定你實際使用的大小（杯、瓶、馬克杯），單位 ml、L 或 oz。容器越大，杯數越少、間隔越長。','<b>成人 / 兒童</b> — 選擇正確的年齡組；兒童每公斤需要更多水（見下）。','<b>夏季</b> — 炎熱或大量運動時開啟，增加 +15%。','<b>靜音時段</b> — 設定睡眠時間，夜間不打擾。','<b>每杯都按一下</b> — 只有按鍵時計數才前進，所以每喝完一杯就按一次。'],
+    k_sci:'科學依據', h_sci:'科學依據',
+    sci_intro:'每日目標來自一個透明的、基於體重的補水規則——與臨床用於維持補液的邏輯相同：',
+    l_sci:['<b>成人 — 每公斤體重每天 35 ml。</b> 廣泛使用的實用規則（約 30–40 ml/kg/天）。例如：70 kg → 2450 ml ≈ 2.5 L，接近 EFSA 對成人的適宜攝入量。','<b>兒童 — 每公斤體重每天 50 ml。</b> 兒童代謝率更高、體表面積與體重之比更大，因此每公斤需要更多水（Holliday–Segar 維持法的基礎）。','<b>活動時段</b> — 目標平均分配到約 16 個清醒小時來確定提醒間隔（睡眠時不提醒）。','<b>炎熱 / 運動</b> — 夏季模式增加 +15%，以補償出汗流失的水分。'],
+    k_phases:'參考', h_phases:'四種狀態',
+    l_phases:[['#5FA8E0','補水 — 閒置','等待開始新的一天。喝完第一杯後按鍵。'],['#00B4D8','喝水 — 進行中','倒數到下一杯；圓環逐漸減少。'],['alert','快喝水！ — 警示','時間到——現在喝水。按鍵閃爍以引起注意。'],['#2ECC71','已完成 — 目標','達成每日目標——按鍵灌滿水。🎉']],
+    phases_note:'每次喝水都按一下按鍵。最後 7 秒圓環會閃爍預警。',
+    k_use:'按鍵上', h_use:'讀取按鍵',
+    l_use:['中部：到下一杯的剩餘時間（mm:ss）。','圓環：隨間隔倒數減少。','圓點：每日目標的杯數及已喝數。','標籤：目前狀態（補水 / 喝水 / 快喝水！/ 已完成）。'],
+    k_tips:'發揮最大效用', h_tips:'提示',
+    l_tips:['填寫真實體重和杯子容量，目標更準確。','炎熱天氣開啟「夏季」獲得 +15% 水。','使用「靜音」時段在夜間關閉提醒。','選擇喜歡的主題和水動畫（漣漪、水滴、潮汐）。'],
+    c_by:'開發者', foot:'💧 Hydro 喝水 — Ulanzi Deck 外掛' }
+};
+
+function detectLang(){
+  const hash=new URLSearchParams((location.hash||'').replace(/^#/,'')).get('lang');
+  const q=new URLSearchParams(location.search).get('lang')||hash;
+  let l=(q||navigator.language||'en').replace('-','_');
+  if(/^zh/i.test(l)) return (/CN|Hans/i.test(l))?'zh_CN':'zh_HK';
+  if(/^pt/i.test(l)) return (/PT/i.test(l))?'pt_PT':'pt_BR';
+  if(/^en/i.test(l)) return 'en';
+  if(TUT[l]) return l;
+  const map={es:'es_ES',de:'de_DE',fr:'fr_FR',it:'it_IT',ja:'ja_JP',ko:'ko_KR'};
+  const s=l.split('_')[0];
+  return map[s]||(TUT[s]?s:'en');
+}
+
+const d=TUT[detectLang()]||TUT.en;
+document.documentElement.lang=detectLang();
+const set=(id,html)=>{const e=document.getElementById(id); if(e) e.innerHTML=html;};
+const txt=(id,t)=>{const e=document.getElementById(id); if(e) e.textContent=t;};
+document.title=(d.title||'Hydro Tracker').replace(/<[^>]+>/g,'');
+set('title',d.title); txt('sub',d.sub); txt('p_what',d.p_what);
+txt('k_how',d.k_how); txt('h_how',d.h_how);
+txt('k_cfg',d.k_cfg); txt('h_cfg',d.h_cfg);
+txt('k_sci',d.k_sci); txt('h_sci',d.h_sci); txt('sci_intro',d.sci_intro);
+txt('sci_formula', FORMULA[detectLang()] || FORMULA.en);
+txt('sci_src', (SRC[detectLang()] || 'Sources') + ': ' + CITES);
+txt('k_phases',d.k_phases); txt('h_phases',d.h_phases); txt('phases_note',d.phases_note);
+txt('k_use',d.k_use); txt('h_use',d.h_use);
+txt('k_tips',d.k_tips); txt('h_tips',d.h_tips);
+txt('c_by',d.c_by); txt('foot',d.foot);
+const PF={pt_BR:'Portfólio',pt_PT:'Portfólio',es_ES:'Portafolio',fr_FR:'Portfolio',de_DE:'Portfolio',it_IT:'Portfolio',ja_JP:'ポートフォリオ',ko_KR:'포트폴리오',zh_CN:'作品集',zh_HK:'作品集',en:'Portfolio'};
+txt('c_site', PF[detectLang()]||'Portfolio');
+
+const li=(id,arr)=>set(id,arr.map(x=>`<li>${x}</li>`).join(''));
+li('l_how',d.l_how); li('l_cfg',d.l_cfg); li('l_sci',d.l_sci); li('l_use',d.l_use); li('l_tips',d.l_tips);
+set('l_phases', d.l_phases.map(([c,n,desc])=>{
+  const sw = c==='alert' ? `<span class="sw alert"></span>` : `<span class="sw" style="background:${c}"></span>`;
+  return `<div class="crow">${sw}<div><div class="cname">${n}</div><div class="cdesc">${desc}</div></div></div>`;
+}).join(''));
+</script>
+</body>
+</html>

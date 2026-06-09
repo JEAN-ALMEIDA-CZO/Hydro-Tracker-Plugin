@@ -1,0 +1,48 @@
+{
+  "Name": "Cronómetro de Agua",
+  "Description": "Calcula tus necesidades de hidratación y ofrece recordatorios inteligentes para beber agua.",
+  "Actions": [
+    {
+      "Name": "Cronómetro de Agua",
+      "Tooltip": "Recordatorio Inteligente"
+    }
+  ],
+  "Localization": {
+    "profile": "PERFIL",
+    "ageGroup": "Grupo de Edad",
+    "adult": "Adulto",
+    "child": "Niño",
+    "weight": "Peso",
+    "containerSize": "Recipiente",
+    "behavior": "COMPORTAMIENTO",
+    "theme": "TEMA",
+    "font": "Fuente",
+    "notifications": "Notificar",
+    "notifyEnable": "Alerta de escritorio",
+    "resetProgress": "Reiniciar Progreso",
+    "tipClickKey": "Clic en tecla: bebió agua",
+    "msgDrinkWater": "¡Hora de beber agua! Mantente hidratado.",
+    "msgGoalReached": "¡Meta diaria de hidratación alcanzada! ¡Buen trabajo!",
+    "calcInfo": "Meta: {0}ml ({1} vasos). Intervalo: {2}m.",
+    "labelIdle": "HIDRATAR",
+    "labelRunning": "BEBER",
+    "labelAlert": "¡BEBE!",
+    "labelDone": "HECHO",
+    "hotWeather": "Verano",
+    "hotWeatherHint": "Calor / +15% de agua",
+    "quietHours": "Silencio",
+    "quietHoursHint": "Sin avisos de noche",
+    "quietFrom": "Desde",
+    "quietTo": "hasta",
+    "animation": "ANIMACIÓN",
+    "drinkAnim": "Beber",
+    "animRipples": "Ondas",
+    "animDrop": "Gota",
+    "animWave": "Llenado",
+    "ringAnimLabel": "Anillo",
+    "ringClean": "Limpio",
+    "ringFlow": "Brillo",
+    "ringTide": "Marea",
+    "tutorial": "Tutorial"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "Name": "물 마시기 타이머",
+  "Description": "수분 섭취량을 계산하고 물 마실 시간을 스마트하게 카운트다운으로 알려줍니다.",
+  "Actions": [
+    {
+      "Name": "물 마시기 타이머",
+      "Tooltip": "스마트 물 알림"
+    }
+  ],
+  "Localization": {
+    "profile": "프로필",
+    "ageGroup": "연령대",
+    "adult": "성인",
+    "child": "어린이",
+    "weight": "체중",
+    "containerSize": "용기",
+    "behavior": "동작",
+    "theme": "테마",
+    "font": "글꼴",
+    "notifications": "알림",
+    "notifyEnable": "시간 되면 데스크톱 알림",
+    "resetProgress": "진행 초기화",
+    "tipClickKey": "키 누름: 물 마심",
+    "msgDrinkWater": "물 마실 시간이에요! 수분을 유지하세요.",
+    "msgGoalReached": "오늘 수분 목표 달성! 잘했어요!",
+    "calcInfo": "목표: {0}ml ({1}잔). 간격: {2}분.",
+    "labelIdle": "수분",
+    "labelRunning": "마시기",
+    "labelAlert": "마셔요!",
+    "labelDone": "완료",
+    "hotWeather": "더위",
+    "hotWeatherHint": "더위 / 물 +15%",
+    "quietHours": "무음",
+    "quietHoursHint": "밤에 알림 없음",
+    "quietFrom": "시작",
+    "quietTo": "까지",
+    "animation": "애니메이션",
+    "drinkAnim": "마시기",
+    "animRipples": "물결",
+    "animDrop": "물방울",
+    "animWave": "채우기",
+    "ringAnimLabel": "링",
+    "ringClean": "깔끔",
+    "ringFlow": "빛남",
+    "ringTide": "조수",
+    "tutorial": "튜토리얼"
+  }
+}
