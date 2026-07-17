@@ -43,6 +43,11 @@
     "ringClean": "Limpio",
     "ringFlow": "Brillo",
     "ringTide": "Marea",
-    "tutorial": "Tutorial"
+    "tutorial": "Tutorial",
+    "reminderPace": "Ritmo de recordatorios",
+    "pace_frequent": "Frecuente (~30 min)",
+    "pace_balanced": "Equilibrado (~45 min)",
+    "pace_relaxed": "Relajado (~60 min)",
+    "pace_container": "Por recipiente"
   }
 }

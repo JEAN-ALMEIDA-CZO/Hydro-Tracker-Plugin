@@ -120,7 +120,14 @@ function updateCalculationDisplay() {
 
   const totalGlasses = Math.max(1, Math.ceil(totalMl / containerMl));
   const activeMinutes = 16 * 60;
-  const intervalMinutes = Math.floor(activeMinutes / totalGlasses);
+  const glassInterval = activeMinutes / totalGlasses;
+
+  // mirror the backend sip-split so the shown interval is the actual reminder gap
+  const pace = (document.getElementById('reminderPace') || {}).value || 'balanced';
+  const PACE_MAX = { frequent: 30, balanced: 45, relaxed: 60, container: Infinity };
+  const paceMax = PACE_MAX[pace] != null ? PACE_MAX[pace] : 45;
+  const sips = Math.max(1, Math.min(6, Math.ceil(glassInterval / paceMax)));
+  const intervalMinutes = Math.max(1, Math.round(glassInterval / sips));
 
   const template = KEY_LABELS.calcInfo;
   const text = template
@@ -194,6 +201,7 @@ function applySettings(params) {
   document.getElementById('font').value = ACTION_SETTING.font || 'sans';
   document.getElementById('dropAnim').value = ACTION_SETTING.dropAnim || 'ripples';
   document.getElementById('ringAnim').value = ACTION_SETTING.ringAnim || 'clean';
+  document.getElementById('reminderPace').value = ACTION_SETTING.reminderPace || 'balanced';
 
   const boolOn = v => v === true || v === 'true' || v === 'on';
   document.getElementById('hotWeather').checked = boolOn(ACTION_SETTING.hotWeather);

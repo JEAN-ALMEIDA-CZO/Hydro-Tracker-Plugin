@@ -9,7 +9,7 @@ import opentype from 'opentype.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ICON_DIR = path.join(__dirname, '..', 'assets', 'icons');
 
-const PLUGIN_VERSION = '1.0.0';
+const PLUGIN_VERSION = '1.0.1';
 const DEBUG = process.env.HYDRO_DEBUG === '1';
 const BOOT_LOG = path.join(os.tmpdir(), 'hydro_boot.log');
 
@@ -86,6 +86,9 @@ function textToPath(font, text, fontSize, letterSpacing = 0) {
   return full;
 }
 
+// glyph geometry (opentype path + bbox) is expensive — memoize per font/size/text
+// so the once-a-second mm:ss redraw is nearly free (only ~60 distinct strings).
+const _glyphCache = new Map();
 function glyphSVG(fontKey, text, cx, cy, fontSize, fill, opacity) {
   const font = loadFont(fontKey);
   if (!font) {
@@ -93,11 +96,18 @@ function glyphSVG(fontKey, text, cx, cy, fontSize, fill, opacity) {
       fill="${fill}" font-size="${fontSize}" font-weight="bold"
       font-family="Arial, Helvetica, sans-serif" opacity="${opacity}">${text}</text>`;
   }
-  const p  = textToPath(font, text, fontSize);
-  const bb = p.getBoundingBox();
-  const dx = cx - (bb.x1 + (bb.x2 - bb.x1) / 2);
-  const dy = cy - (bb.y1 + (bb.y2 - bb.y1) / 2);
-  return `<path transform="translate(${dx.toFixed(1)} ${dy.toFixed(1)})" d="${p.toPathData(2)}" fill="${fill}" opacity="${opacity}"/>`;
+  const k = fontKey + '|' + fontSize + '|' + text;
+  let g = _glyphCache.get(k);
+  if (!g) {
+    const p = textToPath(font, text, fontSize);
+    const bb = p.getBoundingBox();
+    g = { d: p.toPathData(2), x1: bb.x1, x2: bb.x2, y1: bb.y1, y2: bb.y2 };
+    if (_glyphCache.size > 300) _glyphCache.clear();
+    _glyphCache.set(k, g);
+  }
+  const dx = cx - (g.x1 + (g.x2 - g.x1) / 2);
+  const dy = cy - (g.y1 + (g.y2 - g.y1) / 2);
+  return `<path transform="translate(${dx.toFixed(1)} ${dy.toFixed(1)})" d="${g.d}" fill="${fill}" opacity="${opacity}"/>`;
 }
 
 const PHASE_LABELS_DEFAULT = {
@@ -642,6 +652,10 @@ class HydroTracker {
       font: 'sans',
       dropAnim: 'ripples',
       ringAnim: 'clean',
+      // reminder pace — a full container isn't drunk in one go, so long gaps are
+      // split into sip-sized reminders (each ≤ the pace's target minutes). Values:
+      // frequent(~30) | balanced(~45) | relaxed(~60) | container(one drink/container).
+      reminderPace: 'balanced',
       notifyTitle: 'Hydro Tracker',
       msgDrinkWater: 'Time to drink water! Stay hydrated.',
       msgGoalReached: 'Daily hydration goal reached! Great job!',
@@ -652,6 +666,8 @@ class HydroTracker {
     this.totalTime    = 60 * 60;
     this.timeLeft     = this.totalTime;
     this.currentAmount = 0;
+    this.sipsPerGlass = 1;    // reminders per container (auto from the reminder pace)
+    this.sipInGlass   = 0;    // sips taken toward the current container
 
     this.phase        = 'idle';    // idle | running | alert | done
     this.running      = false;
@@ -693,6 +709,7 @@ class HydroTracker {
     if (param.font)  this.config.font  = param.font;
     if (param.dropAnim) this.config.dropAnim = param.dropAnim;
     if (param.ringAnim) this.config.ringAnim = param.ringAnim;
+    if (param.reminderPace) this.config.reminderPace = param.reminderPace;
 
     const strFields = ['notifyTitle', 'msgDrinkWater', 'msgGoalReached',
                        'labelIdle', 'labelRunning', 'labelAlert', 'labelDone'];
@@ -732,9 +749,22 @@ class HydroTracker {
 
     const newGoal = Math.max(1, Math.ceil(totalMl / containerMl));
     const activeMinutes = 16 * 60;
-    const intervalMinutes = Math.max(1, Math.floor(activeMinutes / newGoal));
+    const glassInterval = activeMinutes / newGoal; // minutes to finish ONE container
+
+    // A container is sipped, not chugged: split long gaps into sip-sized reminders so
+    // the countdown no longer scales with container size (500 mL used to mean a 192-min
+    // wait). Each reminder targets ≤ pace minutes; each key press = one sip; a container
+    // (dot) fills after all its sips.
+    const PACE_MAX = { frequent: 30, balanced: 45, relaxed: 60, container: Infinity };
+    const paceMax = PACE_MAX[this.config.reminderPace] != null ? PACE_MAX[this.config.reminderPace] : 45;
+    const sips = Math.max(1, Math.min(6, Math.ceil(glassInterval / paceMax)));
+    const intervalMinutes = Math.max(1, Math.round(glassInterval / sips));
 
     this.dailyGoal = newGoal;
+    if (this.sipsPerGlass !== sips) {
+      this.sipsPerGlass = sips;
+      if (this.sipInGlass >= sips) this.sipInGlass = 0;
+    }
 
     const newTotalTime = intervalMinutes * 60;
     if (this.totalTime !== newTotalTime) {
@@ -752,9 +782,12 @@ class HydroTracker {
     // If already done for the day, dismiss
     if (this.phase === 'done') { this._finishDone(); return; }
 
-    this.currentAmount++;
     this._stopBlink();
     this._stopAnim();   // stop any alert ripple animation
+
+    // each press = one sip; a container (dot) fills after all its sips
+    this.sipInGlass++;
+    if (this.sipInGlass >= this.sipsPerGlass) { this.sipInGlass = 0; this.currentAmount++; }
 
     if (this.currentAmount >= this.dailyGoal) {
       // Goal reached! Play the hydration-complete celebration
@@ -765,7 +798,7 @@ class HydroTracker {
       this.blinkOn = false;
       this.animFrame = 0;
       // smooth "filled up with water" animation for ~6s, then reset
-      this.animTimer = setInterval(() => { this.animFrame++; this.render(); }, 70);
+      this.animTimer = setInterval(() => { this.animFrame++; this.render(); }, 100);
       this.doneTimer = setTimeout(() => this._finishDone(), 6000);
       this.render();
       return;
@@ -785,6 +818,7 @@ class HydroTracker {
     this._stopAnim();
     if (this.doneTimer) { clearTimeout(this.doneTimer); this.doneTimer = null; }
     this.currentAmount = 0;
+    this.sipInGlass    = 0;
     this.phase         = 'idle';
     this.running       = false;
     this.timeLeft      = this.totalTime;
@@ -814,14 +848,14 @@ class HydroTracker {
     if (this.animTimer || this.phase !== 'running') return;
     const ra = this.config.ringAnim;
     if (ra !== 'flow' && ra !== 'tide') return;
-    this.animTimer = setInterval(() => { this.animFrame++; this._easeWater(); this.render(); }, 110);
+    this.animTimer = setInterval(() => { this.animFrame++; this._easeWater(); this.render(); }, 160);
   }
 
   // Gentle dripping animation while idle (waiting to start the day).
   _startIdleAnim() {
     if (this.animTimer || this.phase !== 'idle') return;
-    // ~6.5 fps — smooth gentle idle drip while keeping the idle key cheap
-    this.animTimer = setInterval(() => { this.animFrame++; this.render(); }, 150);
+    // ~4.5 fps — gentle idle drip; low rate keeps a resting key light on CPU
+    this.animTimer = setInterval(() => { this.animFrame++; this.render(); }, 220);
   }
 
   // Ease the tank level toward the real countdown ratio so the tide both drains
@@ -873,7 +907,7 @@ class HydroTracker {
     this.animTimer = setInterval(() => {
       this.animFrame++;
       this.render();
-    }, 90);
+    }, 130);
   }
 
   // ── render ──
@@ -906,6 +940,8 @@ class HydroTracker {
         animFrame:     this.animFrame,
         running:       this.running || this.phase === 'alert'
       });
+      if (svg === this._lastSvg) return; // skip redundant WS pushes (no visual change)
+      this._lastSvg = svg;
       this.$UD.setBaseDataIcon(this.context, svg);
     } catch (e) {
       console.error('[Hydro] render error:', e.message);
@@ -927,8 +963,23 @@ $UD.connect('com.hydro.tracker.deck');
 $UD.onConnected(() => bootLog('connected to Ulanzi'));
 $UD.onError((e) => console.error('[Hydro] Error:', typeof e === 'string' ? e : ''));
 
+// One live instance per action. Moving a key changes its context (position), so
+// without this the old instance keeps its animation timer and both render to the
+// same key → the water drop flickers. Drop any stale instance for the same action.
+function dropStaleFor(ctx) {
+  let actionid;
+  try { actionid = $UD.decodeContext(ctx).actionid; } catch (e) { return; }
+  if (!actionid) return;
+  for (const k of Object.keys(ACTION_CACHES)) {
+    if (k === ctx) continue;
+    let a; try { a = $UD.decodeContext(k).actionid; } catch (e) { continue; }
+    if (a === actionid) { ACTION_CACHES[k].destroy(); delete ACTION_CACHES[k]; }
+  }
+}
+
 $UD.onAdd((jsn) => {
   const ctx = jsn.context;
+  dropStaleFor(ctx); // clear a previous placement of this same action (moved key)
   if (!ACTION_CACHES[ctx]) ACTION_CACHES[ctx] = new HydroTracker(ctx, $UD);
   if (jsn.param) ACTION_CACHES[ctx].setConfig(jsn.param);
 });
@@ -945,7 +996,7 @@ $UD.onParamFromPlugin((jsn) => {
 
 $UD.onRun((jsn) => {
   const ctx = jsn.context;
-  if (!ACTION_CACHES[ctx]) ACTION_CACHES[ctx] = new HydroTracker(ctx, $UD);
+  if (!ACTION_CACHES[ctx]) { dropStaleFor(ctx); ACTION_CACHES[ctx] = new HydroTracker(ctx, $UD); }
   ACTION_CACHES[ctx].drinkWater();
 });
 

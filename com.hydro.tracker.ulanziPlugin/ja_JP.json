@@ -43,6 +43,11 @@
     "ringClean": "クリーン",
     "ringFlow": "輝き",
     "ringTide": "潮",
-    "tutorial": "チュートリアル"
+    "tutorial": "チュートリアル",
+    "reminderPace": "リマインダー間隔",
+    "pace_frequent": "頻繁 (~30分)",
+    "pace_balanced": "バランス (~45分)",
+    "pace_relaxed": "ゆったり (~60分)",
+    "pace_container": "容器ごと"
   }
 }

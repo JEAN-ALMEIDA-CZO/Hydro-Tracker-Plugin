@@ -43,6 +43,11 @@
     "ringClean": "Klar",
     "ringFlow": "Leuchten",
     "ringTide": "Gezeiten",
-    "tutorial": "Anleitung"
+    "tutorial": "Anleitung",
+    "reminderPace": "Erinnerungstempo",
+    "pace_frequent": "Häufig (~30 Min.)",
+    "pace_balanced": "Ausgewogen (~45 Min.)",
+    "pace_relaxed": "Entspannt (~60 Min.)",
+    "pace_container": "Pro Behälter"
   }
 }

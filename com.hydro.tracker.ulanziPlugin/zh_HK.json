@@ -43,6 +43,11 @@
     "ringClean": "簡潔",
     "ringFlow": "光暈",
     "ringTide": "潮汐",
-    "tutorial": "教學"
+    "tutorial": "教學",
+    "reminderPace": "提醒節奏",
+    "pace_frequent": "頻繁 (~30分鐘)",
+    "pace_balanced": "均衡 (~45分鐘)",
+    "pace_relaxed": "寬鬆 (~60分鐘)",
+    "pace_container": "每個容器"
   }
 }
