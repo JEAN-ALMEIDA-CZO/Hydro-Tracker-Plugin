@@ -23,7 +23,7 @@
     "tipClickKey": "Clic en tecla: bebió agua",
     "msgDrinkWater": "¡Hora de beber agua! Mantente hidratado.",
     "msgGoalReached": "¡Meta diaria de hidratación alcanzada! ¡Buen trabajo!",
-    "calcInfo": "Meta: {0}ml ({1} vasos). Intervalo: {2}m.",
+    "calcInfo": "Meta: {0}ml ({1} vasos × {3} sorbos). Un vaso cada {2}min.",
     "labelIdle": "HIDRATAR",
     "labelRunning": "BEBER",
     "labelAlert": "¡BEBE!",
@@ -45,9 +45,9 @@
     "ringTide": "Marea",
     "tutorial": "Tutorial",
     "reminderPace": "Ritmo de recordatorios",
-    "pace_frequent": "Frecuente (~30 min)",
-    "pace_balanced": "Equilibrado (~45 min)",
-    "pace_relaxed": "Relajado (~60 min)",
-    "pace_container": "Por recipiente"
+    "pace_frequent": "Frecuente",
+    "pace_balanced": "Equilibrado",
+    "pace_relaxed": "Relajado",
+    "pace_container": "Recipiente entero"
   }
 }

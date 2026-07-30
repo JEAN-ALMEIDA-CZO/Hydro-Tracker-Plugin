@@ -23,7 +23,7 @@
     "tipClickKey": "按鍵：已喝水",
     "msgDrinkWater": "該喝水了！保持水分充足。",
     "msgGoalReached": "達到每日補水目標！太棒了！",
-    "calcInfo": "目標：{0}ml（{1} 杯）。間隔：{2}分鐘。",
+    "calcInfo": "目標：{0}ml（{1}杯 × {3}口）。每{2}分鐘一杯。",
     "labelIdle": "補水",
     "labelRunning": "喝水",
     "labelAlert": "快喝水！",
@@ -45,9 +45,9 @@
     "ringTide": "潮汐",
     "tutorial": "教學",
     "reminderPace": "提醒節奏",
-    "pace_frequent": "頻繁 (~30分鐘)",
-    "pace_balanced": "均衡 (~45分鐘)",
-    "pace_relaxed": "寬鬆 (~60分鐘)",
-    "pace_container": "每個容器"
+    "pace_frequent": "頻繁",
+    "pace_balanced": "均衡",
+    "pace_relaxed": "寬鬆",
+    "pace_container": "整個容器"
   }
 }

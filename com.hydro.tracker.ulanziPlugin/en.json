@@ -23,7 +23,7 @@
     "tipClickKey": "Click key: drank water",
     "msgDrinkWater": "Time to drink water! Stay hydrated.",
     "msgGoalReached": "Daily hydration goal reached! Great job!",
-    "calcInfo": "Goal: {0}ml ({1} glasses). Interval: {2}m.",
+    "calcInfo": "Goal: {0}ml ({1} glasses × {3} sips). A glass every {2}m.",
     "labelIdle": "HYDRATE",
     "labelRunning": "DRINK",
     "labelAlert": "DRINK!",
@@ -45,9 +45,9 @@
     "ringTide": "Tide",
     "tutorial": "Tutorial",
     "reminderPace": "Reminder pace",
-    "pace_frequent": "Frequent (~30 min)",
-    "pace_balanced": "Balanced (~45 min)",
-    "pace_relaxed": "Relaxed (~60 min)",
-    "pace_container": "Per container"
+    "pace_frequent": "Frequent",
+    "pace_balanced": "Balanced",
+    "pace_relaxed": "Relaxed",
+    "pace_container": "Whole container"
   }
 }

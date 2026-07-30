@@ -1,0 +1,151 @@
+===============================================================================
+HYDRO TRACKER — UlanziDeck Plugin
+Release Notes — Version 1.0.2
+===============================================================================
+
+OVERVIEW
+-------------------------------------------------------------------------------
+Version 1.0.2 is a substantial refinement of how Hydro Tracker models drinking,
+how it is operated from the key, and how it presents information. The previous
+version treated a container as a single action and reset the countdown on every
+press, which did not match how people actually drink. This release rebuilds that
+model around real sips, adds a clear on-key sip counter, separates the "one sip"
+and "one glass" actions, corrects the child sip size, improves the time display
+for long intervals, and preserves a running countdown when a key is moved.
+
+Nothing in the setup needs to be redone; existing keys keep their settings and
+adopt the new behaviour automatically.
+
+
+-------------------------------------------------------------------------------
+1. VOLUME-BASED SIP MODEL
+-------------------------------------------------------------------------------
+A container is no longer assumed to be emptied in one action. It is now divided
+into sips based on its real volume, using an average swallow of about 20 ml.
+A 200 ml glass therefore corresponds to roughly 10 sips, which matches a
+measured, real-world drinking session.
+
+The number of sips per container is controlled by the "Reminder pace" setting,
+which now selects the SIP SIZE rather than an abstract frequency:
+
+    Frequent .......... small sips, ~15 ml each
+    Balanced .......... ~20 ml each (default)
+    Relaxed ........... large sips, ~30 ml each
+    Whole container ... a single press logs the entire container
+
+The property-inspector dropdown now shows each option together with its
+millilitre value, in the form "name — N ml" (for example, "Balanced — 20 ml"),
+so the effect of the setting is explicit at the point of choosing it.
+
+
+-------------------------------------------------------------------------------
+2. CHILD SIP SIZE (CORRECTION)
+-------------------------------------------------------------------------------
+Children take noticeably smaller swallows than adults. When the age group is set
+to "Child", the sip size is now capped at 20 ml, even on the "Relaxed" pace.
+In practice this means the pace dropdown, for a child, reads:
+
+    Frequent — 15 ml
+    Balanced — 20 ml
+    Relaxed  — 20 ml     (capped; would be 30 ml for an adult)
+    Whole container
+
+This affects only the sip granularity and the on-key counter; it does not change
+the daily water goal, which continues to use the 50 ml/kg/day child rule.
+
+
+-------------------------------------------------------------------------------
+3. ON-KEY SIP COUNTER
+-------------------------------------------------------------------------------
+The key now shows how far you are through the current glass. Above the timer, a
+small numeric readout "n / N" (sips taken / sips in this glass) is displayed
+next to a ball that fills sip by sip. Both sit together at the top of the ring,
+mirroring the state label shown below the timer.
+
+The counter is shown only while a glass is in progress. It is hidden in the idle
+state and in the "Whole container" mode, where a glass is a single press and a
+sip breakdown would carry no information.
+
+
+-------------------------------------------------------------------------------
+4. KEY INTERACTION: SHORT PRESS vs. LONG PRESS (CHANGED)
+-------------------------------------------------------------------------------
+The single press action has been split into two, to separate "I took a sip" from
+"I finished a glass":
+
+    SHORT PRESS  = one sip.
+                   Advances the counter and fills the ball. The countdown is NOT
+                   reset; it continues to run until it completes on its own.
+                   Taking the final sip of a container completes the glass.
+
+    LONG PRESS   = one whole glass (hold ~1.5 s).
+                   Records a full container at once, fills a progress dot, and
+                   restarts the countdown for the next glass.
+
+This resolves the previous behaviour in which every press restarted the timer.
+If your UlanziDeck build does not emit key-hold events, every press is simply
+treated as a sip; no functionality is lost.
+
+
+-------------------------------------------------------------------------------
+5. PER-GLASS COUNTDOWN
+-------------------------------------------------------------------------------
+The countdown now represents the interval for one full glass and is no longer
+recomputed per individual sip. The interval is the daily goal spread across a
+16-hour active window (one glass every "16 h / number of glasses"). Logging a
+sip leaves this countdown untouched; only completing a glass restarts it.
+
+
+-------------------------------------------------------------------------------
+6. TIME DISPLAY FOR LONG INTERVALS
+-------------------------------------------------------------------------------
+Under one hour, the timer reads as minutes and seconds (mm:ss), as before. For
+intervals of an hour or more it now switches to a compact hours-and-minutes
+form (for example, "1:14" instead of "74:00"), with the seconds shown a little
+smaller in the top-right corner so they remain visible without dominating the
+readout.
+
+
+-------------------------------------------------------------------------------
+7. COUNTDOWN PRESERVED WHEN MOVING A KEY (FIX)
+-------------------------------------------------------------------------------
+A running countdown, including its sip progress, is now preserved by action
+identifier. Moving the key to another slot, or switching pages and returning, no
+longer clears the countdown; it resumes at the correct remaining time.
+
+
+-------------------------------------------------------------------------------
+8. ANIMATED RING NO LONGER FLICKERS THE KEY (FIX)
+-------------------------------------------------------------------------------
+Selecting an animated ring ("Glow" or "Tide") while the countdown was running
+could make the key flicker. The deck redraws the whole key image on every
+update, and the animation was pushing frames too quickly (about six per second),
+with the once-per-second countdown tick landing on top of an animation frame and
+producing two full redraws back to back. The running-ring animation now runs at
+a calmer rate and the per-second tick no longer pushes a duplicate frame, so the
+key updates smoothly. The static "Clean" ring is unchanged.
+
+
+-------------------------------------------------------------------------------
+9. LOCALISATION AND DOCUMENTATION
+-------------------------------------------------------------------------------
+- The property-inspector summary reports the daily goal, the number of glasses,
+  the sips per glass, and the per-glass interval.
+- Interface strings were updated across all 11 supported languages: English,
+  Portuguese (Brazil and Portugal), Spanish, French, German, Italian, Japanese,
+  Korean, and Chinese (Simplified and Traditional).
+- The built-in tutorial documents the sip model, the sip-size / millilitre
+  mapping, the child cap, and the short-press / long-press interaction in
+  English and Portuguese; the remaining locales received the pace-label update.
+
+
+-------------------------------------------------------------------------------
+UPGRADE NOTE
+-------------------------------------------------------------------------------
+After updating, fully restart UlanziDeck from the system tray so the revised
+plugin is reloaded. No reconfiguration is required.
+
+===============================================================================
+Hydro Tracker is a habit-building reminder, not medical advice.
+Made by Jean Almeida for the UlanziDeck community.
+===============================================================================

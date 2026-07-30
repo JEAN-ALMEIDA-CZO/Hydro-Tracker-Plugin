@@ -23,7 +23,7 @@
     "tipClickKey": "키 누름: 물 마심",
     "msgDrinkWater": "물 마실 시간이에요! 수분을 유지하세요.",
     "msgGoalReached": "오늘 수분 목표 달성! 잘했어요!",
-    "calcInfo": "목표: {0}ml ({1}잔). 간격: {2}분.",
+    "calcInfo": "목표: {0}ml ({1}잔 × {3}모금). {2}분마다 한 잔.",
     "labelIdle": "수분",
     "labelRunning": "마시기",
     "labelAlert": "마셔요!",
@@ -45,9 +45,9 @@
     "ringTide": "조수",
     "tutorial": "튜토리얼",
     "reminderPace": "알림 주기",
-    "pace_frequent": "자주 (~30분)",
-    "pace_balanced": "균형 (~45분)",
-    "pace_relaxed": "느슨하게 (~60분)",
-    "pace_container": "용기 단위"
+    "pace_frequent": "자주",
+    "pace_balanced": "균형",
+    "pace_relaxed": "여유",
+    "pace_container": "용기 전체"
   }
 }

@@ -23,7 +23,7 @@
     "tipClickKey": "Tastendruck: Wasser getrunken",
     "msgDrinkWater": "Zeit, Wasser zu trinken! Bleib hydratisiert.",
     "msgGoalReached": "Tägliches Trinkziel erreicht! Gut gemacht!",
-    "calcInfo": "Ziel: {0}ml ({1} Gläser). Intervall: {2}m.",
+    "calcInfo": "Ziel: {0}ml ({1} Gläser × {3} Schlucke). Alle {2}min ein Glas.",
     "labelIdle": "TRINKEN",
     "labelRunning": "TRINK",
     "labelAlert": "TRINK!",
@@ -45,9 +45,9 @@
     "ringTide": "Gezeiten",
     "tutorial": "Anleitung",
     "reminderPace": "Erinnerungstempo",
-    "pace_frequent": "Häufig (~30 Min.)",
-    "pace_balanced": "Ausgewogen (~45 Min.)",
-    "pace_relaxed": "Entspannt (~60 Min.)",
-    "pace_container": "Pro Behälter"
+    "pace_frequent": "Häufig",
+    "pace_balanced": "Ausgewogen",
+    "pace_relaxed": "Entspannt",
+    "pace_container": "Ganzer Behälter"
   }
 }

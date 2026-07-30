@@ -23,7 +23,7 @@
     "tipClickKey": "キー押下：水を飲んだ",
     "msgDrinkWater": "水を飲む時間です！水分補給をしましょう。",
     "msgGoalReached": "1日の水分補給目標を達成しました！よくやりました！",
-    "calcInfo": "目標: {0}ml ({1} 杯)。間隔: {2}分。",
+    "calcInfo": "目標: {0}ml（{1}杯 × {3}口）。{2}分ごとに一杯。",
     "labelIdle": "水分補給",
     "labelRunning": "飲む",
     "labelAlert": "飲んで！",
@@ -45,9 +45,9 @@
     "ringTide": "潮",
     "tutorial": "チュートリアル",
     "reminderPace": "リマインダー間隔",
-    "pace_frequent": "頻繁 (~30分)",
-    "pace_balanced": "バランス (~45分)",
-    "pace_relaxed": "ゆったり (~60分)",
-    "pace_container": "容器ごと"
+    "pace_frequent": "頻繁",
+    "pace_balanced": "標準",
+    "pace_relaxed": "ゆったり",
+    "pace_container": "容器まるごと"
   }
 }

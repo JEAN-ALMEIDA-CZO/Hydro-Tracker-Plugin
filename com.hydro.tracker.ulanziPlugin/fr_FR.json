@@ -23,7 +23,7 @@
     "tipClickKey": "Clic sur touche : a bu de l'eau",
     "msgDrinkWater": "C'est l'heure de boire de l'eau !",
     "msgGoalReached": "Objectif d'hydratation quotidien atteint ! Bien joué !",
-    "calcInfo": "Objectif : {0}ml ({1} verres). Intervalle : {2}m.",
+    "calcInfo": "Objectif : {0}ml ({1} verres × {3} gorgées). Un verre toutes les {2}min.",
     "labelIdle": "HYDRATER",
     "labelRunning": "BOIRE",
     "labelAlert": "BOIS !",
@@ -45,9 +45,9 @@
     "ringTide": "Marée",
     "tutorial": "Tutoriel",
     "reminderPace": "Rythme des rappels",
-    "pace_frequent": "Fréquent (~30 min)",
-    "pace_balanced": "Équilibré (~45 min)",
-    "pace_relaxed": "Détendu (~60 min)",
-    "pace_container": "Par récipient"
+    "pace_frequent": "Fréquent",
+    "pace_balanced": "Équilibré",
+    "pace_relaxed": "Détendu",
+    "pace_container": "Récipient entier"
   }
 }

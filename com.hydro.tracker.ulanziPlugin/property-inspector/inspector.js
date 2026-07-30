@@ -8,7 +8,7 @@ let KEY_LABELS = {
   notifyTitle: 'Hydro Tracker',
   msgDrinkWater: 'Time to drink water! Stay hydrated.',
   msgGoalReached: 'Daily hydration goal reached! Great job!',
-  calcInfo: 'Goal: {0}ml ({1} glasses). Interval: {2}m.',
+  calcInfo: 'Goal: {0}ml ({1} glasses × {3} sips). A glass every {2}m.',
   labelIdle: 'HYDRATE',
   labelRunning: 'DRINK',
   labelAlert: 'DRINK!',
@@ -22,6 +22,26 @@ const THEMES = {
   mint:    { water: '#19D3C5', bg: '#072420' },
   classic: { water: '#5FA8E0', bg: '#15202b' }
 };
+
+// Reminder-pace = sip size. The option labels are built as "name — N ml" and the ml
+// value reflects the age group (children are capped at 20 ml). Names come from the
+// locale file; ml is fixed per pace.
+const PACE_ML = { frequent: 15, balanced: 20, relaxed: 30 };
+let PACE_NAMES = { frequent: 'Frequent', balanced: 'Balanced', relaxed: 'Relaxed', container: 'Whole container' };
+
+function updatePaceLabels() {
+  const sel = document.getElementById('reminderPace');
+  if (!sel) return;
+  const child = ((document.getElementById('ageGroup') || {}).value || 'adult') === 'child';
+  for (const opt of sel.options) {
+    const p = opt.value;
+    if (p === 'container') { opt.textContent = PACE_NAMES.container; continue; }
+    let ml = PACE_ML[p];
+    if (ml == null) continue;
+    if (child) ml = Math.min(ml, 20); // children take smaller sips
+    opt.textContent = `${PACE_NAMES[p]} — ${ml} ml`;
+  }
+}
 
 $UD.connect('com.hydro.tracker.deck.action');
 
@@ -104,6 +124,7 @@ function bindReset() {
 
 function updateCalculationDisplay() {
   if (!form) return;
+  updatePaceLabels(); // keep the pace "name — N ml" labels in sync with the age group
   const ageGroup = document.getElementById('ageGroup').value || 'adult';
   const weight = parseFloat(document.getElementById('weight').value) || 70;
   const weightUnit = document.getElementById('weightUnit').value || 'kg';
@@ -122,18 +143,22 @@ function updateCalculationDisplay() {
   const activeMinutes = 16 * 60;
   const glassInterval = activeMinutes / totalGlasses;
 
-  // mirror the backend sip-split so the shown interval is the actual reminder gap
+  // mirror the backend model: sips per container come from its real volume (~20 mL/sip),
+  // tunable by the reminder-pace control; the countdown is per GLASS (glassInterval),
+  // not per sip.
   const pace = (document.getElementById('reminderPace') || {}).value || 'balanced';
-  const PACE_MAX = { frequent: 30, balanced: 45, relaxed: 60, container: Infinity };
-  const paceMax = PACE_MAX[pace] != null ? PACE_MAX[pace] : 45;
-  const sips = Math.max(1, Math.min(6, Math.ceil(glassInterval / paceMax)));
-  const intervalMinutes = Math.max(1, Math.round(glassInterval / sips));
+  const ML_PER_SIP = { frequent: 15, balanced: 20, relaxed: 30, container: Infinity };
+  let mlPerSip = ML_PER_SIP[pace] != null ? ML_PER_SIP[pace] : 20;
+  if (ageGroup === 'child' && mlPerSip !== Infinity) mlPerSip = Math.min(mlPerSip, 20);
+  const sips = mlPerSip === Infinity ? 1 : Math.max(1, Math.round(containerMl / mlPerSip));
+  const intervalMinutes = Math.max(1, Math.round(glassInterval));
 
   const template = KEY_LABELS.calcInfo;
   const text = template
     .replace('{0}', Math.round(totalMl))
     .replace('{1}', totalGlasses)
-    .replace('{2}', intervalMinutes);
+    .replace('{2}', intervalMinutes)
+    .replace('{3}', sips);
 
   document.getElementById('calc-display').textContent = text;
 }
@@ -152,6 +177,13 @@ async function loadTranslations() {
       }
     }
     const loc  = data?.Localization || {};
+
+    PACE_NAMES = {
+      frequent:  loc['pace_frequent']  || PACE_NAMES.frequent,
+      balanced:  loc['pace_balanced']  || PACE_NAMES.balanced,
+      relaxed:   loc['pace_relaxed']   || PACE_NAMES.relaxed,
+      container: loc['pace_container'] || PACE_NAMES.container
+    };
 
     KEY_LABELS = {
       notifyTitle:    data?.Name           || KEY_LABELS.notifyTitle,

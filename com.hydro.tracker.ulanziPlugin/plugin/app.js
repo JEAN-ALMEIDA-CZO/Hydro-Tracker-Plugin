@@ -9,7 +9,7 @@ import opentype from 'opentype.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ICON_DIR = path.join(__dirname, '..', 'assets', 'icons');
 
-const PLUGIN_VERSION = '1.0.1';
+const PLUGIN_VERSION = '1.0.2';
 const DEBUG = process.env.HYDRO_DEBUG === '1';
 const BOOT_LOG = path.join(os.tmpdir(), 'hydro_boot.log');
 
@@ -318,9 +318,21 @@ function teardrop(cx, cy, s) {
 // ── SVG key renderer ────────────────────────────────────────────────────────
 // Design: countdown is clean (depleting ring + mm:ss). The animated water drop
 // with pulsing ripples appears ONLY in the alert phase, to prompt drinking.
+// Small partial-ring arc (path-based so the deck rasterizer renders it — it ignores
+// stroke transforms). Draws `frac` (0..1) of a ring starting at 12 o'clock, clockwise.
+function ringArc(cx, cy, r, frac, stroke, sw) {
+  if (frac >= 1) return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${stroke}" stroke-width="${sw}"/>`;
+  const a0 = -Math.PI / 2, a1 = a0 + frac * 2 * Math.PI;
+  const x0 = (cx + r * Math.cos(a0)).toFixed(1), y0 = (cy + r * Math.sin(a0)).toFixed(1);
+  const x1 = (cx + r * Math.cos(a1)).toFixed(1), y1 = (cy + r * Math.sin(a1)).toFixed(1);
+  const large = frac > 0.5 ? 1 : 0;
+  return `<path d="M${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round"/>`;
+}
+
 function generateSVG(opts) {
   const { timeLeft, totalTime, phase, displayLabel, flash, dimmed,
-          currentAmount, dailyGoal, theme, font, animFrame, dropAnim, ringAnim, waterLevel } = opts;
+          currentAmount, dailyGoal, sipInGlass = 0, sipsPerGlass = 1,
+          theme, font, animFrame, dropAnim, ringAnim, waterLevel } = opts;
 
   const t = THEMES[theme] || THEMES.ocean;
   const isDone  = phase === 'done';
@@ -337,9 +349,16 @@ function generateSVG(opts) {
   const progress = isDone ? 1 : (totalTime > 0 ? Math.max(0, Math.min(1, timeLeft / totalTime)) : 1);
   const dash = (RING_C * (1 - progress)).toFixed(1);
 
-  const mm = Math.floor(timeLeft / 60).toString();
-  const ss = (timeLeft % 60).toString().padStart(2, '0');
-  const timeStr = `${mm}:${ss}`;
+  // Under an hour: mm:ss as usual. An hour or more: show H:MM as the main readout (so
+  // it doesn't blow up to "74:00") with the seconds a little smaller in the top-right
+  // corner, still ticking.
+  const _h = Math.floor(timeLeft / 3600);
+  const _m = Math.floor((timeLeft % 3600) / 60);
+  const _s = timeLeft % 60;
+  const overHour = timeLeft >= 3600;
+  const timeStr   = overHour ? `${_h}:${_m.toString().padStart(2, '0')}`
+                             : `${_m}:${_s.toString().padStart(2, '0')}`;
+  const secCorner = overHour ? _s.toString().padStart(2, '0') : '';
 
   let defs = '', back = '', center = '', ringEls = '';
   const labelY = dimmed ? 150 : 176;
@@ -595,6 +614,9 @@ function generateSVG(opts) {
     } else {
       const digitFill = flash ? ring : white;
       center = glyphSVG(font, timeStr, CX, CY, 54, digitFill, '1');
+      // H:MM main + small seconds as a superscript in the top-right corner. It sits
+      // above the digit band so it never collides with wide numbers like "2:05".
+      if (secCorner) center += glyphSVG(font, secCorner, CX + 56, 86, 19, digitFill, '0.75');
     }
   }
 
@@ -606,16 +628,33 @@ function generateSVG(opts) {
         letter-spacing="4" opacity="${dimmed ? '0.6' : '1'}">${displayLabel}</text>`
     : '';
 
-  // ── progress dots (water glasses) ───────────────────────────────────
+  // ── progress dots (water glasses toward the daily goal) ─────────────
   const max = Math.min(dailyGoal, 12);
   const gap = 18;
   const x0 = CX - ((max - 1) * gap) / 2;
   let dots = '';
   if (!isDone) for (let i = 0; i < max; i++) {
-    const filled = isDone || i < currentAmount;
-    const fill = filled ? (flash && !isDone ? white : ring) : track;
+    const filled = i < currentAmount;
+    const fill = filled ? (flash ? white : ring) : track;
     const op = filled ? '1' : '0.6';
     dots += `<circle cx="${(x0 + i * gap).toFixed(0)}" cy="234" r="4.5" fill="${fill}" opacity="${op}"/>`;
+  }
+
+  // ── sip progress (above the timer) ──────────────────────────────────
+  // The filling ball and the n/N counter sit together at the top of the ring, side by
+  // side, mirroring the state label below the timer. Only shown while a glass is being
+  // sipped (sips > 1, not idle/done).
+  const showSips = !isDone && phase !== 'idle' && sipsPerGlass > 1;
+  let sipGroup = '';
+  if (showSips) {
+    const f = Math.max(0, Math.min(1, sipInGlass / sipsPerGlass));
+    const gy = 72, bx = CX - 26, sipCol = flash ? white : ring;
+    sipGroup =
+      `<circle cx="${bx}" cy="${gy}" r="9" fill="none" stroke="${track}" stroke-width="2.4" opacity="0.55"/>` +
+      (f > 0 ? ringArc(bx, gy, 9, f, sipCol, 3) : '') +
+      `<text x="${CX - 8}" y="${gy + 6}" text-anchor="start" fill="${sipCol}" opacity="0.95"` +
+      ` font-size="18" font-weight="bold" font-family="Arial, Helvetica, sans-serif"` +
+      ` letter-spacing="1">${sipInGlass}/${sipsPerGlass}</text>`;
   }
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
@@ -624,6 +663,7 @@ function generateSVG(opts) {
   ${back}
   ${ringEls}
   ${center}
+  ${sipGroup}
   ${labelEl}
   ${dots}
 </svg>`;
@@ -751,14 +791,18 @@ class HydroTracker {
     const activeMinutes = 16 * 60;
     const glassInterval = activeMinutes / newGoal; // minutes to finish ONE container
 
-    // A container is sipped, not chugged: split long gaps into sip-sized reminders so
-    // the countdown no longer scales with container size (500 mL used to mean a 192-min
-    // wait). Each reminder targets ≤ pace minutes; each key press = one sip; a container
-    // (dot) fills after all its sips.
-    const PACE_MAX = { frequent: 30, balanced: 45, relaxed: 60, container: Infinity };
-    const paceMax = PACE_MAX[this.config.reminderPace] != null ? PACE_MAX[this.config.reminderPace] : 45;
-    const sips = Math.max(1, Math.min(6, Math.ceil(glassInterval / paceMax)));
-    const intervalMinutes = Math.max(1, Math.round(glassInterval / sips));
+    // The countdown is per GLASS: it runs the full glass interval and does not reset
+    // when you log a sip (a short press). Sips per container come from its real volume
+    // — a ~20 mL swallow means 200 mL ≈ 10 sips — tunable by the reminder-pace control
+    // (frequent 15 mL / balanced 20 mL / relaxed 30 mL / container = 1 press per glass).
+    // A short press = one sip (counter only); a long press = a whole glass (fills a dot
+    // and restarts the countdown). Reaching the last sip also completes the glass.
+    const ML_PER_SIP = { frequent: 15, balanced: 20, relaxed: 30, container: Infinity };
+    let mlPerSip = ML_PER_SIP[this.config.reminderPace] != null ? ML_PER_SIP[this.config.reminderPace] : 20;
+    // children take much smaller sips — cap at 20 mL even on the "relaxed" pace
+    if (this.config.ageGroup === 'child' && mlPerSip !== Infinity) mlPerSip = Math.min(mlPerSip, 20);
+    const sips = mlPerSip === Infinity ? 1 : Math.max(1, Math.round(containerMl / mlPerSip));
+    const intervalMinutes = Math.max(1, Math.round(glassInterval));
 
     this.dailyGoal = newGoal;
     if (this.sipsPerGlass !== sips) {
@@ -778,16 +822,43 @@ class HydroTracker {
     this.render();
   }
 
-  drinkWater() {
-    // If already done for the day, dismiss
+  // Short press = one sip. It advances the counter/ball but does NOT reset the running
+  // countdown — the timer keeps ticking to zero on its own. Taking the last sip of a
+  // container completes the glass. The very first sip (from idle) starts the countdown.
+  sip() {
     if (this.phase === 'done') { this._finishDone(); return; }
 
-    this._stopBlink();
-    this._stopAnim();   // stop any alert ripple animation
-
-    // each press = one sip; a container (dot) fills after all its sips
+    const counting = this.phase === 'running' || this.phase === 'alert';
     this.sipInGlass++;
-    if (this.sipInGlass >= this.sipsPerGlass) { this.sipInGlass = 0; this.currentAmount++; }
+
+    if (this.sipInGlass >= this.sipsPerGlass) { this._completeGlass(); return; }
+
+    if (!counting) {
+      // first sip of a fresh glass (from idle) begins the countdown
+      this._stopBlink();
+      this._stopAnim();
+      this.timeLeft = this.totalTime;
+      this.phase    = 'running';
+      this.running  = true;
+      this._startTimer();
+    }
+    // mid-glass sip while running/alert: leave the countdown untouched
+    this.render();
+  }
+
+  // Long press = a whole glass drunk at once → fill a dot and restart the countdown.
+  drinkGlass() {
+    if (this.phase === 'done') { this._finishDone(); return; }
+    this._completeGlass();
+  }
+
+  // Finish the current glass: fill a dot, reset the sips, and restart the countdown for
+  // the next glass — or celebrate when the daily goal is reached.
+  _completeGlass() {
+    this._stopBlink();
+    this._stopAnim();
+    this.sipInGlass = 0;
+    this.currentAmount++;
 
     if (this.currentAmount >= this.dailyGoal) {
       // Goal reached! Play the hydration-complete celebration
@@ -804,7 +875,7 @@ class HydroTracker {
       return;
     }
 
-    // Reset countdown for next glass
+    // Restart the countdown for the next glass
     this.timeLeft = this.totalTime;
     this.phase    = 'running';
     this.running  = true;
@@ -848,7 +919,10 @@ class HydroTracker {
     if (this.animTimer || this.phase !== 'running') return;
     const ra = this.config.ringAnim;
     if (ra !== 'flow' && ra !== 'tide') return;
-    this.animTimer = setInterval(() => { this.animFrame++; this._easeWater(); this.render(); }, 160);
+    // Calm ~3 fps: the deck redraws the whole key image on every push, and a fast
+    // (6 fps) animated ring makes the physical key flicker. This rate animates the
+    // ring smoothly enough while pushing far fewer full-image frames.
+    this.animTimer = setInterval(() => { this.animFrame++; this._easeWater(); this.render(); }, 360);
   }
 
   // Gentle dripping animation while idle (waiting to start the day).
@@ -880,7 +954,11 @@ class HydroTracker {
       this._onTimeout();
       return;
     }
-    this.render();
+    // With an animated ring the animation timer already paints ~3×/s; letting the
+    // 1 s tick also push here would double up (two full-image redraws back to back
+    // each second → a visible flicker on the key). The anim frame shows the freshly
+    // decremented time on its next paint. Clean ring has no anim timer, so it paints.
+    if (!this.animTimer) this.render();
   }
 
   _startBlink() {
@@ -932,6 +1010,8 @@ class HydroTracker {
         dimmed,
         currentAmount: this.currentAmount,
         dailyGoal:     this.dailyGoal,
+        sipInGlass:    this.sipInGlass,
+        sipsPerGlass:  this.sipsPerGlass,
         theme:         this.config.theme,
         font:          this.config.font,
         dropAnim:      this.config.dropAnim,
@@ -949,6 +1029,7 @@ class HydroTracker {
   }
 
   destroy() {
+    saveRunState(this); // preserve a running countdown across a key move / page switch
     this._stopTimer();
     this._stopBlink();
     if (this.doneTimer) { clearTimeout(this.doneTimer); this.doneTimer = null; }
@@ -958,6 +1039,61 @@ class HydroTracker {
 // ── Bootstrap ───────────────────────────────────────────────────────────────
 const $UD           = new UlanzideckApi();
 const ACTION_CACHES = {};
+
+// Running-countdown state kept by actionid so it survives a key move or a page
+// switch (both destroy + recreate the instance). actionid is unique per physical
+// placement, so a genuine new placement gets a fresh id and never inherits a
+// stale countdown. Deadline is absolute → the timer resumes at the right second.
+const RUN_STATE = {};
+
+function actionIdOf(ctx) {
+  try { return $UD.decodeContext(ctx).actionid || ''; } catch (e) { return ''; }
+}
+
+function saveRunState(inst) {
+  const id = actionIdOf(inst.context);
+  if (!id) return;
+  if (inst.phase === 'running') {
+    RUN_STATE[id] = { phase: 'running', deadline: Date.now() + inst.timeLeft * 1000,
+                      currentAmount: inst.currentAmount, sipInGlass: inst.sipInGlass };
+  } else if (inst.phase === 'alert') {
+    RUN_STATE[id] = { phase: 'alert', deadline: 0,
+                      currentAmount: inst.currentAmount, sipInGlass: inst.sipInGlass };
+  } else {
+    delete RUN_STATE[id]; // idle / done → nothing worth restoring
+  }
+}
+
+// Reapply a saved countdown onto a freshly (re)created instance. Call AFTER
+// setConfig so totalTime reflects the real config before we clamp timeLeft.
+function restoreRunState(inst) {
+  const id = actionIdOf(inst.context);
+  const s = id && RUN_STATE[id];
+  if (!s) return;
+  inst.currentAmount = s.currentAmount;
+  inst.sipInGlass    = s.sipInGlass;
+
+  const left = s.phase === 'running' ? Math.round((s.deadline - Date.now()) / 1000) : 0;
+  if (left > 0) {
+    inst.timeLeft = Math.min(left, inst.totalTime);
+    inst.phase    = 'running';
+    inst.running  = true;
+    inst._stopAnim();
+    inst._startTimer();
+    if (inst.timeLeft <= BLINK_AT) inst._startBlink();
+  } else {
+    // deadline already passed (or it was alerting) → show the drink prompt, but
+    // without re-sending the desktop notification (it already fired once).
+    inst.phase     = 'alert';
+    inst.running   = false;
+    inst.timeLeft  = 0;
+    inst.animFrame = 0;
+    inst._stopBlink();
+    inst._stopAnim();
+    inst.animTimer = setInterval(() => { inst.animFrame++; inst.render(); }, 130);
+  }
+  inst.render();
+}
 
 $UD.connect('com.hydro.tracker.deck');
 $UD.onConnected(() => bootLog('connected to Ulanzi'));
@@ -979,9 +1115,12 @@ function dropStaleFor(ctx) {
 
 $UD.onAdd((jsn) => {
   const ctx = jsn.context;
-  dropStaleFor(ctx); // clear a previous placement of this same action (moved key)
-  if (!ACTION_CACHES[ctx]) ACTION_CACHES[ctx] = new HydroTracker(ctx, $UD);
-  if (jsn.param) ACTION_CACHES[ctx].setConfig(jsn.param);
+  dropStaleFor(ctx); // move the previous placement of this same action here (saves its countdown)
+  let created = false;
+  if (!ACTION_CACHES[ctx]) { ACTION_CACHES[ctx] = new HydroTracker(ctx, $UD); created = true; }
+  const inst = ACTION_CACHES[ctx];
+  if (jsn.param) inst.setConfig(jsn.param);
+  if (created) restoreRunState(inst); // resume a countdown carried over from a move / page switch
 });
 
 $UD.onParamFromApp((jsn) => {
@@ -994,10 +1133,40 @@ $UD.onParamFromPlugin((jsn) => {
   if (inst && jsn.param) inst.setConfig(jsn.param);
 });
 
+// Long press = drink a whole glass. The deck fires keydown → (keyup) → run. We start a
+// timer on keydown; if the key is still held at LONG_PRESS_MS we drink a full glass and
+// flag it so the trailing `run` (the short-press sip) is swallowed. If the Studio build
+// never sends keydown/keyup, only `run` fires and every press is a normal sip.
+const LONG_PRESS_MS = 1500;
+const _press = {}; // context -> { timer, fired }
+
+function ensureInst(ctx) {
+  if (!ACTION_CACHES[ctx]) { dropStaleFor(ctx); ACTION_CACHES[ctx] = new HydroTracker(ctx, $UD); }
+  return ACTION_CACHES[ctx];
+}
+
+$UD.onKeyDown((jsn) => {
+  const ctx = jsn.context;
+  const inst = ensureInst(ctx);
+  const p = _press[ctx] || (_press[ctx] = { timer: null, fired: false });
+  if (p.timer) clearTimeout(p.timer);
+  p.fired = false;
+  p.timer = setTimeout(() => {
+    p.fired = true; p.timer = null;
+    inst.drinkGlass();   // held long enough → whole glass + countdown reset
+  }, LONG_PRESS_MS);
+});
+
+$UD.onKeyUp((jsn) => {
+  const p = _press[jsn.context];
+  if (p && p.timer) { clearTimeout(p.timer); p.timer = null; }
+});
+
 $UD.onRun((jsn) => {
   const ctx = jsn.context;
-  if (!ACTION_CACHES[ctx]) { dropStaleFor(ctx); ACTION_CACHES[ctx] = new HydroTracker(ctx, $UD); }
-  ACTION_CACHES[ctx].drinkWater();
+  const p = _press[ctx];
+  if (p && p.fired) { p.fired = false; return; } // long press already handled → ignore
+  ensureInst(ctx).sip();
 });
 
 $UD.onSetActive((jsn) => {
@@ -1008,6 +1177,9 @@ $UD.onSetActive((jsn) => {
 $UD.onClear((jsn) => {
   if (!jsn.param) return;
   for (const item of jsn.param) {
+    const p = _press[item.context];
+    if (p && p.timer) clearTimeout(p.timer);
+    delete _press[item.context];
     const inst = ACTION_CACHES[item.context];
     if (inst) { inst.destroy(); delete ACTION_CACHES[item.context]; }
   }
