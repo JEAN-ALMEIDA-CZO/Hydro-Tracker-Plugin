@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-1.0.1-00B4D8">
+  <img alt="version" src="https://img.shields.io/badge/version-1.0.2-00B4D8">
   <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-0b131c">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-00B4D8">
   <img alt="i18n" src="https://img.shields.io/badge/i18n-11%20locales-48CAE4">
@@ -23,10 +23,12 @@
 Set your profile and the key becomes a smart water countdown:
 
 - **Personalized goal** — daily water target from your **age group, weight and container size**, spread evenly across your active hours.
-- **Healthy sip reminders** — a container isn't chugged in one go, so long gaps are split into **sips**. The reminder pace stays comfortable **no matter the container size** (a big bottle no longer means a 3-hour wait).
-- **Live countdown ring** — drains toward your next sip; the centre shows the time left (mm:ss).
+- **Realistic sip model** — a container isn't chugged in one go, so it's divided into **sips based on its real volume** (about **20 ml per sip** — a 200 ml glass ≈ 10 sips). The countdown between sips stays comfortable **no matter the container size**.
+- **On-key sip counter** — a small **`n/N`** readout and a **ball that fills sip by sip** sit together **above the timer**, so you can see exactly how far through the glass you are.
+- **Live countdown ring** — drains toward your next glass; the centre shows the time left as **mm:ss**, switching to a compact **h:mm** (with the seconds small in the top-right corner) once an interval runs over an hour.
 - **Four states** — 🔵 **HYDRATE** (idle), 🔵 **DRINK** (counting down), 🔴 **DRINK!** (time's up, blinking), 🟢 **DONE** (goal reached — the key floods green).
-- **Press the key when you drink** — the countdown restarts for the next sip; a dot fills once you finish a full container.
+- **Short press = one sip** — logs a sip and fills the counter/ball; the countdown **keeps running** (it is not reset). Taking the last sip completes the glass.
+- **Long press = a whole glass** — logs a full container at once, fills a dot, and **restarts the countdown** for the next glass.
 - **Container units** — set your glass/bottle in **ml, L or oz**.
 - **Desktop notifications** (Windows + macOS) when it's time to drink and when you hit the goal.
 - **Summer mode** (+15% water on hot days) and **Quiet hours** (no alerts at night).
@@ -45,7 +47,7 @@ Everything runs **locally** — no accounts, no API keys, no telemetry.
 | **Age group** | Adult (35 ml/kg) or Child (50 ml/kg) — sets the hydration formula. |
 | **Weight** | Your weight in kg or lbs. |
 | **Container** | Your glass/bottle size in **ml, L or oz** — defines one "glass". |
-| **Reminder pace** | How often the key nudges you: **Frequent (~30 min)**, **Balanced (~45 min, default)**, **Relaxed (~60 min)**, or **Per container** (one drink per full container). Large containers are split into sips so reminders stay regular. |
+| **Reminder pace** | Sip size — how finely a container is divided for the counter: **Frequent** (small ~15 ml sips), **Balanced** (~20 ml sips, default), **Relaxed** (big ~30 ml sips), or **Whole container** (one press per full container). Smaller sips = more taps per glass; it does not change the countdown. |
 | **Notify** | Desktop alert when it's time to drink / goal reached. |
 | **Summer** | +15% water for hot weather. |
 | **Quiet** | Silence notifications between two hours (e.g. 22:00 → 07:00). |
@@ -57,20 +59,20 @@ Everything runs **locally** — no accounts, no API keys, no telemetry.
 
 ## 🔬 Hydration model
 
-The daily goal uses a transparent, weight-based rule — the same logic clinicians use for maintenance fluids. Each container is then split into sip-sized reminders so the interval no longer scales with container size:
+The daily goal uses a transparent, weight-based rule — the same logic clinicians use for maintenance fluids. The countdown is one glass interval; each container is divided into sips by its real volume for the on-key counter:
 
 ```
 goal     = ⌈ weight(kg) × ml/kg × heat ÷ container(ml) ⌉
-sips     = ⌈ (16 h ÷ goal) ÷ pace ⌉          (per container, clamped 1–6)
-reminder = (16 h ÷ goal) ÷ sips
+interval = 16 h ÷ goal                              (the per-glass countdown)
+sips     = round( container(ml) ÷ ml-per-sip )      (ml-per-sip from pace: 15 / 20 / 30)
 ```
 
 | Group | Rate | Rationale |
 |-------|------|-----------|
 | **Adult** | **35 ml/kg/day** | Common practical rule (~30–40 ml/kg/day). e.g. 70 kg → 2450 ml ≈ 2.5 L, close to EFSA adequate intake. |
-| **Child** | **50 ml/kg/day** | Children need more water per kg (higher metabolic rate, larger body-surface-to-mass ratio — basis of the Holliday–Segar method). |
+| **Child** | **50 ml/kg/day** | Children need more water per kg (higher metabolic rate, larger body-surface-to-mass ratio — basis of the Holliday–Segar method). They also take smaller swallows, so the **sip size is capped at 20 ml** for children regardless of pace. |
 
-The target is spread evenly over a **16-hour active window** (no alerts while you sleep); **Summer** adds **+15%** for heat/exercise. **Reminder pace** controls how often you're nudged — big containers are drunk in sips instead of one long wait.
+The target is spread evenly over a **16-hour active window** (no alerts while you sleep); **Summer** adds **+15%** for heat/exercise. **Reminder pace** sets the sip size (~15 / 20 / 30 ml), which sets how many sips a container takes — a 200 ml glass at the default 20 ml pace is 10 sips, matching a real drinking session. The countdown is one glass interval and is **not** reset when you log a sip; a **long press** logs a whole glass and restarts it.
 
 **Sources:** EFSA Panel on Dietetic Products — *Dietary Reference Values for water* (EFSA Journal, 2010); Holliday MA, Segar WE — *The maintenance need for water in parenteral fluid therapy* (Pediatrics, 1957); WHO / Institute of Medicine water intake guidance.
 
@@ -108,6 +110,7 @@ Search for **Hydro Tracker** in the UlanziDeck plugin store and install.
 - **Cross-platform** — `os`/`path` aware, no hardcoded paths. Windows + macOS.
 - **No native binaries** — pure-JS dependencies (`opentype.js`, `ws`), fully portable.
 - **Lightweight** — the `clean` ring uses only a 1 s tick (no extra loop); animated rings/idle run a low-fps loop; **vector digits are cached** and **identical frames are never re-sent to the deck**, so a resting key barely touches the CPU. Boot logging is off by default (`HYDRO_DEBUG=1` to enable).
+- **Move-safe countdown** — a running countdown (and its sip progress) is preserved by action id, so moving the key to another slot or switching pages no longer resets it.
 - **Vector digits** — fonts converted to SVG paths so the chosen font renders on every deck renderer.
 
 ---
